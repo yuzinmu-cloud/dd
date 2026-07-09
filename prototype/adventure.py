@@ -91,7 +91,7 @@ def handle_action(state: GameState, action: str) -> str:
     if state.current_scene == "final_chamber":
         return handle_final_chamber(state, cleaned)
 
-    return "AI GM 停頓了一下。目前的場景狀態無法辨識。"
+    return "遊戲主持人停頓了一下。目前的場景狀態無法辨識。"
 
 
 def handle_village_inn(state: GameState, action: str) -> str:
@@ -110,7 +110,7 @@ def handle_village_inn(state: GameState, action: str) -> str:
     state.add_note("酒館裡氣氛緊繃，酒館老闆似乎隱瞞了某些事情。")
     return (
         "你環顧酒館：泥濘的靴印、沉默的礦工、牆上一張用炭筆標出礦坑道路的舊地圖。"
-        "AI GM 給出明確的下一步：你可以詢問酒館老闆，或前往村莊廣場。"
+        "遊戲主持人給出明確的下一步：你可以詢問酒館老闆，或前往村莊廣場。"
     )
 
 
