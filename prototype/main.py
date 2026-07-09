@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 
 from adventure import HELP_TEXT, OPENING_NARRATION, describe_current_scene, handle_action, status_text
+from ai_gm import ask_ai_gm
 from game_state import GameState
 
 
@@ -18,7 +19,7 @@ YES_COMMANDS = {"y", "yes", "是", "好", "讀取"}
 
 
 def main() -> None:
-    print("AIGMOS Demo v0.2")
+    print("AIGMOS Demo v0.3")
     print("輸入「幫助」查看可用指令。輸入「離開」結束冒險。")
     print()
 
@@ -65,7 +66,9 @@ def main() -> None:
             print(describe_current_scene(state) if not state.ended else "這段冒險已經抵達結局。")
             continue
 
-        response = handle_action(state, action)
+        state.record_action(action)
+        response = ask_ai_gm(state, action)
+        handle_action(state, action, record=False)
         print(response)
 
         if state.ended:
