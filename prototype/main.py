@@ -9,6 +9,7 @@ from dice import format_check_result, resolve_check
 from game_state import GameState
 from judge import evaluate_action
 from playtest import log_turn
+from state_update import apply_state_update
 
 
 SAVE_FILE = Path(__file__).with_name("save_game.json")
@@ -19,10 +20,17 @@ SAVE_COMMANDS = {"save", "存檔"}
 LOAD_COMMANDS = {"load", "讀檔"}
 QUIT_COMMANDS = {"quit", "exit", "離開"}
 YES_COMMANDS = {"y", "yes", "是", "好", "讀取"}
+FALLBACK_MOVEMENT_WORDS = {
+    "酒館", "inn", "廣場", "square", "礦坑", "礦坑入口", "入口", "entrance",
+    "礦坑深處", "坑道", "interior", "最深處", "final chamber", "前往", "進入", "離開",
+}
+FALLBACK_ENDING_WORDS = {
+    "救援", "救出", "拯救", "真相", "揭露", "決戰", "對抗", "攻擊", "阻止",
+}
 
 
 def main() -> None:
-    print("AIGMOS Demo v0.4")
+    print("AIGMOS Demo v0.5")
     print("輸入「幫助」查看可用指令。輸入「離開」結束冒險。")
     print()
 
@@ -77,14 +85,25 @@ def main() -> None:
 
         state.record_action(action)
         response = ask_ai_gm(state, action, judge_result, dice_result)
-        if judge_result["is_possible"]:
+        state_update = apply_state_update(state, action, judge_result, dice_result, response)
+        if should_use_legacy_fallback(action, state_update, judge_result):
             handle_action(state, action, record=False)
         print(response)
-        log_turn(state, action, judge_result, dice_result, response)
+        log_turn(state, action, judge_result, dice_result, response, state_update)
 
         if state.ended:
             print()
             print("冒險已完成。你可以輸入「狀態」、「存檔」或「離開」。")
+
+
+def should_use_legacy_fallback(action: str, state_update: dict, judge_result: dict) -> bool:
+    if judge_result.get("is_possible") is False:
+        return False
+    if state_update.get("clues_added") or state_update.get("npc_memories_added"):
+        return False
+    if state_update.get("ending") or state_update.get("hp_delta"):
+        return False
+    return any(word in action for word in FALLBACK_MOVEMENT_WORDS | FALLBACK_ENDING_WORDS)
 
 
 def choose_start_state() -> GameState:
