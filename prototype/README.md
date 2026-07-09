@@ -136,6 +136,8 @@ AI GM 被要求輸出兩段：
 
 玩家只會看到 `NARRATION`。`STATE_UPDATE_JSON` 是內部資料，用來讓 GameState 記住 AI 敘事中發生的事。
 
+如果本機模型把段落標記寫壞，但回覆尾端仍有合法 JSON 物件，`ai_response.py` 會先嘗試恢復並驗證該 JSON。只有無法恢復或驗證失敗時，才會啟用 fallback。
+
 ## Structured Update 可更新內容
 
 目前 structured update 可以處理：
@@ -241,7 +243,7 @@ v0.6 記錄內容包含：
 
 ## 已知限制
 
-- 本機模型可能偶爾不遵守 JSON 格式；此時會啟用 fallback。
+- 本機模型可能偶爾不遵守 JSON 格式；此時會嘗試恢復尾端 JSON，若仍不合法則啟用 fallback。
 - fallback 無法理解所有 AI 敘事，只能保守處理明確線索與事件。
 - 目前 Dice 與 Judge 都是最小規則，不是完整 TRPG 規則系統。
 - 冒險內容仍是原型資料，還不是完整模組。
