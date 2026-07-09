@@ -10,7 +10,7 @@ from dice import format_check_result, resolve_check
 from game_state import GameState
 from judge import evaluate_action
 from playtest import log_turn
-from state_update import apply_structured_update
+from state_update import apply_state_update, apply_structured_update
 
 
 SAVE_FILE = Path(__file__).with_name("save_game.json")
@@ -81,10 +81,11 @@ def main() -> None:
         raw_response = ask_ai_gm(state, action, judge_result, dice_result)
         parsed_response = parse_ai_response(raw_response)
         narration = parsed_response["narration"] or raw_response
-        state_update = parsed_response["structured_update"]
 
         if parsed_response["is_valid"]:
-            state_update = apply_structured_update(state, state_update)
+            state_update = apply_structured_update(state, parsed_response["structured_update"])
+        else:
+            state_update = apply_state_update(state, action, judge_result, dice_result, narration)
 
         print(narration)
         log_turn(state, action, judge_result, dice_result, narration, state_update)
