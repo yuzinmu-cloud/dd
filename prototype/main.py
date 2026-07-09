@@ -5,11 +5,12 @@ from pathlib import Path
 
 from adventure import HELP_TEXT, OPENING_NARRATION, describe_current_scene, handle_action, status_text
 from ai_gm import ask_ai_gm
+from ai_response import parse_ai_response
 from dice import format_check_result, resolve_check
 from game_state import GameState
 from judge import evaluate_action
 from playtest import log_turn
-from state_update import apply_state_update
+from state_update import apply_structured_update
 
 
 SAVE_FILE = Path(__file__).with_name("save_game.json")
@@ -30,7 +31,7 @@ FALLBACK_ENDING_WORDS = {
 
 
 def main() -> None:
-    print("AIGMOS Demo v0.5")
+    print("AIGMOS Demo v0.6")
     print("輸入「幫助」查看可用指令。輸入「離開」結束冒險。")
     print()
 
@@ -84,12 +85,18 @@ def main() -> None:
             print(format_check_result(dice_result))
 
         state.record_action(action)
-        response = ask_ai_gm(state, action, judge_result, dice_result)
-        state_update = apply_state_update(state, action, judge_result, dice_result, response)
-        if should_use_legacy_fallback(action, state_update, judge_result):
+        raw_response = ask_ai_gm(state, action, judge_result, dice_result)
+        parsed_response = parse_ai_response(raw_response)
+        narration = parsed_response["narration"] or raw_response
+        state_update = parsed_response["structured_update"]
+
+        if parsed_response["is_valid"]:
+            state_update = apply_structured_update(state, state_update)
+        elif should_use_legacy_fallback(action, state_update, judge_result):
             handle_action(state, action, record=False)
-        print(response)
-        log_turn(state, action, judge_result, dice_result, response, state_update)
+
+        print(narration)
+        log_turn(state, action, judge_result, dice_result, narration, state_update)
 
         if state.ended:
             print()
