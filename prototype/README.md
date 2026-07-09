@@ -1,8 +1,8 @@
-# AIGMOS Demo v0.4
+# AIGMOS Demo v0.5
 
 ## 版本
 
-v0.4
+v0.5
 
 ## 狀態
 
@@ -11,6 +11,8 @@ v0.4
 ## 目的
 
 這個原型用來驗證 AIGMOS 的本機單人文字冒險循環。玩家可以用自然語言輸入行動，系統會先用最小 AI Judge 判斷行動合理性與是否需要擲骰，再把目前場景、狀態、Judge 結果與骰子結果交給本機 AI GM 回應。
+
+v0.5 新增 State Update Layer。AI GM 的敘事現在可以透過保守的規則更新已追蹤狀態，例如線索、NPC 記憶、HP、目標與結局。
 
 目前版本預設使用 Ollama 本機模型，不需要 OpenAI API key，也不需要網路連線。
 
@@ -85,6 +87,7 @@ python prototype/main.py
 - 需要檢定時自動擲 d20。
 - 顯示骰子結果，例如：`檢定：d20 = 14，DC 13，成功。`
 - AI GM 會根據 Judge 與 Dice 結果描述後果。
+- State Update Layer 會從玩家行動與 AI 回覆中保守更新狀態。
 - 支援狀態保存與讀取。
 - 記錄 playtest log 到 `prototype/playtest_log.txt`。
 - 支援三位核心 NPC：
@@ -92,7 +95,7 @@ python prototype/main.py
   - 村長奧倫
   - 失蹤礦工的妹妹莉娜
 - 支援至少六個線索。
-- 支援三種結局方向：救援、真相、決戰。
+- 支援救援、真相、決戰與失敗結局。
 
 ## 可用指令
 
@@ -110,7 +113,7 @@ python prototype/main.py
 
 玩家輸入 `save` 或 `存檔` 時，原型會在 `prototype/main.py` 旁邊寫入 `save_game.json`。
 
-v0.4 擴充了狀態欄位，包含：
+狀態目前包含：
 
 - 玩家名稱
 - HP
@@ -123,6 +126,28 @@ v0.4 擴充了狀態欄位，包含：
 - 失敗目標
 
 舊版 `save_game.json` 缺少新欄位時，遊戲會使用預設值讀取，不應崩潰。不過舊存檔可能只會讀取部分資料。
+
+## State Update Layer
+
+v0.5 的狀態更新層是規則式且保守的。它會根據下列資訊產生結構化更新：
+
+- 玩家行動
+- 目前狀態
+- Judge 結果
+- Dice 結果
+- AI GM 回覆
+
+可更新內容包含：
+
+- 線索
+- NPC 記憶
+- 世界旗標
+- HP
+- 道具
+- 完成或失敗目標
+- 結局
+
+已知限制：AI GM 仍可能描述一些 State Update Layer 尚未完全理解的事件。這些事件不一定會被完整寫入狀態。
 
 ## Playtest Log
 
@@ -139,6 +164,10 @@ prototype/playtest_log.txt
 - 玩家行動
 - Judge 結果
 - Dice 結果
+- State Update 結果
+- 更新後 HP
+- 更新後已知線索
+- 更新後世界旗標
 - AI 回覆
 
 不會記錄 API key 或敏感資料。
@@ -160,6 +189,7 @@ $env:OPENAI_API_KEY="你的 API 金鑰"
 
 - 不包含完整 DND 規則。
 - 不包含完整戰鬥系統。
+- 不包含角色建立。
 - 不包含職業、能力值、完整背包、裝備或法術系統。
 - 不包含多人遊戲。
 - 不包含網頁或手機介面。
@@ -170,10 +200,10 @@ $env:OPENAI_API_KEY="你的 API 金鑰"
 
 後續版本可以評估：
 
+- 更精準的 state update schema。
+- 把 AI 回覆拆成 narration 與 structured update 兩段。
 - 更穩定的場景推進判斷。
 - 更完整的 NPC 記憶摘要。
-- 更好的檢定提示格式。
 - 更細緻的線索鎖定與結局條件。
-- 自動化測試 AI GM prompt 結構。
 
-以上只是未來方向，v0.4 沒有實作完整遊戲系統。
+以上只是未來方向，v0.5 沒有實作完整遊戲系統。
