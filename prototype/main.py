@@ -10,7 +10,12 @@ from dice import format_check_result, resolve_check
 from game_state import GameState
 from judge import evaluate_action
 from playtest import log_turn
-from state_update import apply_state_update, apply_structured_update
+from state_update import (
+    apply_state_update,
+    apply_structured_update,
+    apply_supplemental_state_update,
+    merge_updates,
+)
 
 
 SAVE_FILE = Path(__file__).with_name("save_game.json")
@@ -86,7 +91,9 @@ def main() -> None:
         if fallback_used:
             state_update = apply_state_update(state, action, judge_result, dice_result, narration)
         else:
-            state_update = apply_structured_update(state, parsed_response["structured_update"])
+            structured_update = apply_structured_update(state, parsed_response["structured_update"])
+            supplemental_update = apply_supplemental_state_update(state, action, judge_result, narration)
+            state_update = merge_updates(structured_update, supplemental_update)
 
         print(narration)
         log_turn(
