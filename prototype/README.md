@@ -1,66 +1,82 @@
-# AIGMOS Text Prototype
+# AIGMOS Demo v0.2
 
-## Version
+## 版本
 
-v0.1
+v0.2
 
-## Status
+## 狀態
 
-Playable prototype
+可遊玩的文字原型
 
-## Purpose
+## 目的
 
-This prototype validates the first minimal solo text adventure loop for AIGMOS using deterministic placeholder logic.
+這個原型用來驗證 AIGMOS 第一個最小可遊玩的單人文字冒險循環。
 
-It is based on the MVP adventure premise: The Candlewick Mine Incident.
+目前版本是繁體中文（台灣）在地化與玩家體驗潤飾版本，仍然只使用固定規則與關鍵字判斷，不會呼叫外部 AI API。
 
-## How To Run
+冒險內容基於 MVP 前提：《燭芯礦坑事件》。
 
-From the repository root:
+## 如何啟動
+
+請在 repository 根目錄執行：
 
 ```bash
 python prototype/main.py
 ```
 
-## What It Does
+## 原型目前會做什麼
 
-- Starts a new solo text adventure.
-- Loads the hardcoded premise for The Candlewick Mine Incident.
-- Shows opening narration.
-- Accepts free-text player input.
-- Responds with simple AI-DM-style text based on keywords and current scene.
-- Tracks simple in-memory state.
-- Supports five scenes:
-  - Village inn
-  - Village square
-  - Mine entrance
-  - Mine interior
-  - Final chamber
-- Supports a simple ending after the final chamber.
-- Supports JSON save/load through `save_game.json`.
+- 啟動一段單人文字冒險。
+- 載入固定的《燭芯礦坑事件》冒險前提。
+- 顯示開場敘事。
+- 接受玩家自由輸入的行動描述。
+- 依照目前場景與關鍵字給出簡單的遊戲主持人風格回應。
+- 記錄簡單的遊戲狀態。
+- 支援五個場景：
+  - 酒館
+  - 村莊廣場
+  - 礦坑入口
+  - 礦坑深處
+  - 礦坑最深處
+- 在最後場景支援簡單結局。
+- 透過 `save_game.json` 進行簡單存檔與讀檔。
 
-## Commands
+## 可用指令
 
-- `help`: show available commands
-- `status`: show current state summary
-- `save`: save the current session
-- `load`: load `save_game.json`
-- `quit`: exit the prototype
+英文與中文指令都可以使用：
 
-All other input is treated as an in-world player action.
+- `help` / `幫助`：查看可用指令
+- `status` / `狀態`：查看目前狀態
+- `save` / `存檔`：儲存目前進度
+- `load` / `讀檔`：讀取 `save_game.json`
+- `quit` / `離開`：離開原型
 
-## What It Does Not Do
+除了以上指令，其他輸入都會被視為玩家在冒險中的行動。
 
-- It does not call an external AI API.
-- It does not use a full game engine.
-- It does not implement a full ruleset.
-- It does not include multiplayer.
-- It does not include web or mobile UI.
-- It does not include accounts, database storage, monetization, voice, image generation, or marketplace features.
-- It does not represent final adventure writing, final dialogue, or final game mechanics.
+## 目前不會做什麼
 
-## Save File
+- 不會呼叫外部 AI API。
+- 不包含完整遊戲引擎。
+- 不實作完整規則系統。
+- 不包含多人遊戲。
+- 不包含網頁或手機介面。
+- 不包含帳號、資料庫、付費、語音、圖像生成或市集功能。
+- 不代表最終冒險文本、最終對話或最終遊戲機制。
 
-The prototype writes `save_game.json` next to `main.py` when the player uses the `save` command.
+## 存檔
 
-The save file is intentionally simple and may change as the prototype evolves.
+玩家輸入 `save` 或 `存檔` 時，原型會在 `prototype/main.py` 旁邊寫入 `save_game.json`。
+
+這個存檔格式仍維持 v0.1 的簡單結構，未在 v0.2 修改。
+
+## 未來方向
+
+後續版本可以評估：
+
+- 更清楚的新手引導。
+- 更完整的中文輸入關鍵字覆蓋。
+- 更好的場景摘要與線索呈現。
+- 更穩定的結局差異檢查。
+- 將固定邏輯逐步拆分成可測試的規格。
+
+以上只是未來方向，v0.2 沒有實作新系統。
