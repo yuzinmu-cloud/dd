@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from adventure import HELP_TEXT, OPENING_NARRATION, describe_current_scene, handle_action, status_text
+from adventure import HELP_TEXT, OPENING_NARRATION, describe_current_scene, status_text
 from ai_gm import ask_ai_gm
 from ai_response import parse_ai_response
 from dice import format_check_result, resolve_check
@@ -21,13 +21,6 @@ SAVE_COMMANDS = {"save", "存檔"}
 LOAD_COMMANDS = {"load", "讀檔"}
 QUIT_COMMANDS = {"quit", "exit", "離開"}
 YES_COMMANDS = {"y", "yes", "是", "好", "讀取"}
-FALLBACK_MOVEMENT_WORDS = {
-    "酒館", "inn", "廣場", "square", "礦坑", "礦坑入口", "入口", "entrance",
-    "礦坑深處", "坑道", "interior", "最深處", "final chamber", "前往", "進入", "離開",
-}
-FALLBACK_ENDING_WORDS = {
-    "救援", "救出", "拯救", "真相", "揭露", "決戰", "對抗", "攻擊", "阻止",
-}
 
 
 def main() -> None:
@@ -92,8 +85,6 @@ def main() -> None:
 
         if parsed_response["is_valid"]:
             state_update = apply_structured_update(state, state_update)
-        elif should_use_legacy_fallback(action, state_update, judge_result):
-            handle_action(state, action, record=False)
 
         print(narration)
         log_turn(state, action, judge_result, dice_result, narration, state_update)
@@ -101,16 +92,6 @@ def main() -> None:
         if state.ended:
             print()
             print("冒險已完成。你可以輸入「狀態」、「存檔」或「離開」。")
-
-
-def should_use_legacy_fallback(action: str, state_update: dict, judge_result: dict) -> bool:
-    if judge_result.get("is_possible") is False:
-        return False
-    if state_update.get("clues_added") or state_update.get("npc_memories_added"):
-        return False
-    if state_update.get("ending") or state_update.get("hp_delta"):
-        return False
-    return any(word in action for word in FALLBACK_MOVEMENT_WORDS | FALLBACK_ENDING_WORDS)
 
 
 def choose_start_state() -> GameState:
