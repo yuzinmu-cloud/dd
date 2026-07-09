@@ -40,9 +40,11 @@ def apply_supplemental_state_update(
     update = _new_update()
     combined_text = f"{action}\n{ai_response}"
 
+    _collect_location_update(update, action)
     _collect_npc_updates(update, combined_text, action)
     _collect_clue_updates(update, combined_text)
     _collect_flag_updates(update, judge_result)
+    _collect_ending_update(update, action, state.current_scene)
 
     _apply_update(state, update)
     return update
@@ -74,11 +76,12 @@ def apply_state_update(
     update = _new_update()
     combined_text = f"{action}\n{ai_response}"
 
+    _collect_location_update(update, action)
     _collect_npc_updates(update, combined_text, action)
     _collect_clue_updates(update, combined_text)
     _collect_flag_updates(update, judge_result)
     _collect_hp_update(update, judge_result, dice_result)
-    _collect_ending_update(update, combined_text)
+    _collect_ending_update(update, action, state.current_scene)
     _collect_notes(update, judge_result, dice_result)
 
     _apply_update(state, update)
@@ -90,6 +93,33 @@ def _new_update() -> dict[str, Any]:
         key: list(value) if isinstance(value, list) else value
         for key, value in DEFAULT_UPDATE.items()
     }
+
+
+def _collect_location_update(update: dict[str, Any], action: str) -> None:
+    scene_id = _scene_from_action(action)
+    if scene_id:
+        update["location_changed"] = True
+        update["new_location"] = scene_id
+        _add_flag(update, f"visited_{scene_id}")
+
+
+def _scene_from_action(action: str) -> str | None:
+    text = action.strip().lower()
+    movement_words = ["前往", "到", "去", "進入", "走向", "移動", "返回", "回到", "離開", "探索", "抵達", "move", "go", "enter", "return"]
+    if not _mentions_any(text, movement_words):
+        return None
+
+    if _mentions_any(text, ["最深處", "最深", "最後房間", "final chamber"]):
+        return "final_chamber"
+    if _mentions_any(text, ["礦坑入口", "坑口", "入口", "mine entrance"]):
+        return "mine_entrance"
+    if _mentions_any(text, ["礦坑深處", "坑道", "礦坑內", "更深", "mine interior"]):
+        return "mine_interior"
+    if _mentions_any(text, ["村莊廣場", "村子廣場", "廣場", "village square"]):
+        return "village_square"
+    if _mentions_any(text, ["酒館", "旅店", "inn"]):
+        return "village_inn"
+    return None
 
 
 def _collect_npc_updates(update: dict[str, Any], text: str, action: str) -> None:
@@ -146,18 +176,22 @@ def _collect_hp_update(
         update["hp_delta"] = -1
 
 
-def _collect_ending_update(update: dict[str, Any], text: str) -> None:
-    if _mentions_any(text, ["救援", "救出", "拯救", "放出失蹤", "救出失蹤"]):
+def _collect_ending_update(update: dict[str, Any], action: str, current_scene: str) -> None:
+    can_end = current_scene == "final_chamber" or _mentions_any(action, ["最深處", "最終", "最後房間", "final chamber"])
+    if not can_end:
+        return
+
+    if _mentions_any(action, ["救援", "救出", "拯救", "放出失蹤", "救出失蹤", "救出礦工"]):
         update["ending"] = "rescue_focused"
         _add_objective(update, "objectives_completed", "救出失蹤礦工")
         _add_flag(update, "prioritized_rescue")
 
-    if _mentions_any(text, ["揭露真相", "真相大白", "說出真相", "公開真相"]):
+    if _mentions_any(action, ["揭露真相", "真相大白", "說出真相", "公開真相", "揭露"]):
         update["ending"] = "truth_revealing"
         _add_objective(update, "objectives_completed", "揭露燭芯礦坑真相")
         _add_flag(update, "prioritized_truth")
 
-    if _mentions_any(text, ["決戰", "正面對抗", "擊退", "擊敗", "阻止威脅"]):
+    if _mentions_any(action, ["決戰", "正面對抗", "擊退", "擊敗", "阻止威脅"]):
         update["ending"] = "confrontation_focused"
         _add_objective(update, "objectives_completed", "阻止礦坑威脅")
         _add_flag(update, "prioritized_confrontation")
@@ -175,6 +209,9 @@ def _collect_notes(
 
 
 def _apply_update(state: GameState, update: dict[str, Any]) -> None:
+    if update["location_changed"] and update["new_location"]:
+        state.move_to_scene(update["new_location"])
+
     for clue in update["clues_added"]:
         state.add_clue(clue)
 
