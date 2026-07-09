@@ -84,6 +84,17 @@ FLAG_LABELS = {
     "prioritized_rescue": "選擇優先救援",
     "prioritized_confrontation": "選擇正面對抗",
     "prioritized_truth": "選擇揭露真相",
+    "mara_lantern_clue": "取得舊礦燈線索",
+    "oren_contacted": "與奧倫互動",
+    "lina_contacted": "與莉娜互動",
+    "footprint_clue": "取得腳印線索",
+    "candlelight_clue": "取得燭光線索",
+    "last_action_social": "最近行動：對話",
+    "last_action_social_check": "最近行動：社交檢定",
+    "last_action_investigation": "最近行動：調查",
+    "last_action_attack": "最近行動：攻擊",
+    "last_action_general": "最近行動：一般行動",
+    "last_action_impossible": "最近行動：不可行",
 }
 
 HELP_TEXT = "可用指令：幫助/help、狀態/status、存檔/save、讀檔/load、離開/quit。除此之外，你可以直接輸入想做的行動。"
@@ -98,6 +109,7 @@ def status_text(state: GameState) -> str:
     clues = "\n".join(f"- {clue}" for clue in state.known_clues) if state.known_clues else "尚未發現"
     inventory = "、".join(state.inventory) if state.inventory else "沒有道具"
     flags = "\n".join(f"- {FLAG_LABELS.get(flag, flag)}" for flag in sorted(state.world_flags or state.flags)) if (state.world_flags or state.flags) else "尚未觸發"
+    npc_memory = _format_npc_memory(state.npc_memory)
     completed = "\n".join(f"- {item}" for item in state.completed_objectives) if state.completed_objectives else "尚未完成"
     failed = "\n".join(f"- {item}" for item in state.failed_objectives) if state.failed_objectives else "尚未失敗"
     return (
@@ -112,6 +124,8 @@ def status_text(state: GameState) -> str:
         f"道具：{inventory}\n"
         "線索：\n"
         f"{clues}\n"
+        "NPC 記憶：\n"
+        f"{npc_memory}\n"
         "事件：\n"
         f"{flags}\n"
         "已完成目標：\n"
@@ -245,6 +259,9 @@ def handle_final_chamber(state: GameState, action: str) -> str:
 
 
 def ending_text(state: GameState) -> str:
+    if state.ending == "failure":
+        return "【失敗結局】\n你倒在燭芯礦坑的黑暗裡。失蹤礦工的真相仍被雨聲與沉默掩埋。"
+
     if state.ending == "rescue_focused":
         return "【救援結局】\n你把失蹤礦工的性命放在第一位。"
 
@@ -252,6 +269,16 @@ def ending_text(state: GameState) -> str:
         return "【決戰結局】\n你正面迎向礦坑裡的危險，暫時阻止了威脅。"
 
     return "【真相結局】\n你揭開了足夠多的隱情，讓灰堤村無法再用沉默掩蓋這場事件。"
+
+
+def _format_npc_memory(npc_memory: dict[str, list[str]]) -> str:
+    if not npc_memory:
+        return "尚無記錄"
+    lines = []
+    for npc, memories in npc_memory.items():
+        if memories:
+            lines.append(f"- {npc}: {'；'.join(memories)}")
+    return "\n".join(lines) if lines else "尚無記錄"
 
 
 def _move_by_location_keyword(state: GameState, action: str) -> bool:
