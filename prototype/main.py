@@ -37,7 +37,7 @@ def main() -> None:
         action = input("你要怎麼做？ > ").strip()
 
         if not action:
-            print("AI GM 靜靜等待你說出下一步行動。")
+            print("遊戲主持人靜靜等待你說出下一步行動。")
             continue
 
         command = action.lower()
