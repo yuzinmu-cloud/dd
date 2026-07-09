@@ -9,10 +9,17 @@ from game_state import GameState
 
 SAVE_FILE = Path(__file__).with_name("save_game.json")
 
+HELP_COMMANDS = {"help", "幫助"}
+STATUS_COMMANDS = {"status", "狀態"}
+SAVE_COMMANDS = {"save", "存檔"}
+LOAD_COMMANDS = {"load", "讀檔"}
+QUIT_COMMANDS = {"quit", "exit", "離開"}
+YES_COMMANDS = {"y", "yes", "是", "好", "讀取"}
+
 
 def main() -> None:
-    print("AIGMOS Text Prototype")
-    print("Type 'help' for commands. Type 'quit' to exit.")
+    print("AIGMOS Demo v0.2")
+    print("輸入「幫助」查看可用指令。輸入「離開」結束冒險。")
     print()
 
     state = choose_start_state()
@@ -22,40 +29,40 @@ def main() -> None:
         print()
         print(describe_current_scene(state))
     else:
-        print("Loaded session.")
-        print(describe_current_scene(state) if not state.ended else "This session has already reached an ending.")
+        print("已成功讀取存檔。")
+        print(describe_current_scene(state) if not state.ended else "這段冒險已經抵達結局。")
 
     while True:
         print()
-        action = input("What do you do? > ").strip()
+        action = input("你要怎麼做？ > ").strip()
 
         if not action:
-            print("The AI GM waits for a clear action.")
+            print("AI GM 靜靜等待你說出下一步行動。")
             continue
 
         command = action.lower()
 
-        if command in {"quit", "exit"}:
-            print("Session closed.")
+        if command in QUIT_COMMANDS:
+            print("冒險結束，期待再次見到你。")
             break
 
-        if command == "help":
+        if command in HELP_COMMANDS:
             print(HELP_TEXT)
             continue
 
-        if command == "status":
+        if command in STATUS_COMMANDS:
             print(status_text(state))
             continue
 
-        if command == "save":
+        if command in SAVE_COMMANDS:
             save_game(state)
-            print(f"Game saved to {SAVE_FILE.name}.")
+            print(f"已儲存目前進度：{SAVE_FILE.name}")
             continue
 
-        if command == "load":
+        if command in LOAD_COMMANDS:
             state = load_game()
-            print("Game loaded.")
-            print(describe_current_scene(state) if not state.ended else "This session has already reached an ending.")
+            print("已成功讀取存檔。")
+            print(describe_current_scene(state) if not state.ended else "這段冒險已經抵達結局。")
             continue
 
         response = handle_action(state, action)
@@ -63,13 +70,13 @@ def main() -> None:
 
         if state.ended:
             print()
-            print("The adventure is complete. You can type 'status', 'save', or 'quit'.")
+            print("冒險已完成。你可以輸入「狀態」、「存檔」或「離開」。")
 
 
 def choose_start_state() -> GameState:
     if SAVE_FILE.exists():
-        answer = input("Load existing save? [y/N] > ").strip().lower()
-        if answer in {"y", "yes"}:
+        answer = input("發現既有存檔，要讀取嗎？[是/否] > ").strip().lower()
+        if answer in YES_COMMANDS:
             return load_game()
 
     return GameState()
@@ -81,7 +88,7 @@ def save_game(state: GameState) -> None:
 
 def load_game() -> GameState:
     if not SAVE_FILE.exists():
-        print("No save file found. Starting a new game.")
+        print("找不到存檔，將開始新的冒險。")
         return GameState()
 
     data = json.loads(SAVE_FILE.read_text(encoding="utf-8"))
