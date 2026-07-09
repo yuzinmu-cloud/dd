@@ -35,7 +35,10 @@ DEFAULT_STRUCTURED_UPDATE = {
 
 def parse_ai_response(raw_response: str) -> dict[str, Any]:
     narration, json_text, parse_errors = split_ai_response(raw_response)
-    validation = validate_structured_update_json(json_text) if json_text is not None else _invalid_result(parse_errors)
+    if json_text is None:
+        validation = _invalid_result([])
+    else:
+        validation = validate_structured_update_json(json_text)
 
     return {
         "raw_response": raw_response,
@@ -48,11 +51,19 @@ def parse_ai_response(raw_response: str) -> dict[str, Any]:
 
 def split_ai_response(raw_response: str) -> tuple[str, str | None, list[str]]:
     if STATE_UPDATE_MARKER not in raw_response:
-        narration = raw_response.replace(NARRATION_MARKER, "").strip()
-        return narration, None, ["missing_state_update_marker"]
+        recovered = _split_trailing_json(raw_response)
+        if recovered is None:
+            narration = _clean_narration(raw_response)
+            return narration, None, ["missing_state_update_marker"]
+
+        narration, json_text = recovered
+        errors = ["missing_state_update_marker", "recovered_trailing_json"]
+        if not narration:
+            errors.append("empty_narration")
+        return narration, json_text, errors
 
     before_json, after_json = raw_response.split(STATE_UPDATE_MARKER, 1)
-    narration = before_json.replace(NARRATION_MARKER, "").strip()
+    narration = _clean_narration(before_json)
     json_text = _strip_markdown_fence(after_json.strip())
 
     errors: list[str] = []
@@ -149,6 +160,30 @@ def _is_npc_memory_list(value: Any) -> bool:
 
 def _is_plain_int(value: Any) -> bool:
     return isinstance(value, int) and not isinstance(value, bool)
+
+
+def _clean_narration(text: str) -> str:
+    cleaned = text.replace(NARRATION_MARKER, "").strip()
+    lines = [line for line in cleaned.splitlines() if line.strip() != "==="]
+    return "\n".join(lines).strip()
+
+
+def _split_trailing_json(raw_response: str) -> tuple[str, str] | None:
+    decoder = json.JSONDecoder()
+    candidates = [index for index, character in enumerate(raw_response) if character == "{"]
+    for start in reversed(candidates):
+        candidate = raw_response[start:].strip()
+        try:
+            payload, end = decoder.raw_decode(candidate)
+        except json.JSONDecodeError:
+            continue
+        if not isinstance(payload, dict):
+            continue
+        if candidate[end:].strip():
+            continue
+        narration = _clean_narration(raw_response[:start])
+        return narration, candidate[:end]
+    return None
 
 
 def _strip_markdown_fence(text: str) -> str:
