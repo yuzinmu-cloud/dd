@@ -73,9 +73,10 @@ def status_text(state: GameState) -> str:
     )
 
 
-def handle_action(state: GameState, action: str) -> str:
+def handle_action(state: GameState, action: str, record: bool = True) -> str:
     cleaned = action.strip().lower()
-    state.record_action(action)
+    if record:
+        state.record_action(action)
 
     if state.ended:
         return ending_text(state)
