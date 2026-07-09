@@ -31,6 +31,39 @@ def apply_structured_update(state: GameState, structured_update: dict[str, Any])
     return update
 
 
+def apply_supplemental_state_update(
+    state: GameState,
+    action: str,
+    judge_result: dict[str, Any],
+    ai_response: str,
+) -> dict[str, Any]:
+    update = _new_update()
+    combined_text = f"{action}\n{ai_response}"
+
+    _collect_npc_updates(update, combined_text, action)
+    _collect_clue_updates(update, combined_text)
+    _collect_flag_updates(update, judge_result)
+
+    _apply_update(state, update)
+    return update
+
+
+def merge_updates(primary: dict[str, Any], supplemental: dict[str, Any]) -> dict[str, Any]:
+    merged = _new_update()
+    for key in merged:
+        primary_value = primary.get(key, merged[key])
+        supplemental_value = supplemental.get(key, merged[key])
+        if isinstance(merged[key], list):
+            merged[key] = _merge_lists(primary_value, supplemental_value)
+        elif key == "hp_delta":
+            merged[key] = primary_value
+        elif key == "ending":
+            merged[key] = primary_value or supplemental_value
+        else:
+            merged[key] = primary_value if primary_value not in (None, False) else supplemental_value
+    return merged
+
+
 def apply_state_update(
     state: GameState,
     action: str,
@@ -209,3 +242,11 @@ def _add_note(update: dict[str, Any], note: str) -> None:
 def _add_objective(update: dict[str, Any], key: str, objective: str) -> None:
     if objective not in update[key]:
         update[key].append(objective)
+
+
+def _merge_lists(primary: list[Any], supplemental: list[Any]) -> list[Any]:
+    merged: list[Any] = []
+    for item in list(primary) + list(supplemental):
+        if item not in merged:
+            merged.append(item)
+    return merged
