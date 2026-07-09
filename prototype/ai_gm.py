@@ -1,14 +1,16 @@
 from __future__ import annotations
 
+import json
 import os
 from typing import Any
 
-from adventure import SCENE_NAMES
+from adventure import ADVENTURE_PREMISE, SCENE_DESCRIPTIONS, SCENE_NAMES
 from game_state import GameState
+from local_ai import generate_local_response
 
 
 MISSING_API_KEY_MESSAGE = "找不到 OPENAI_API_KEY，請先設定 API 金鑰。"
-DEFAULT_MODEL = "gpt-4.1-mini"
+DEFAULT_OPENAI_MODEL = "gpt-4.1-mini"
 
 AI_GM_INSTRUCTIONS = """
 你是 AIGMOS 的 AI Game Master，負責主持一場 DND 風格的單人文字 TRPG 冒險。
@@ -17,49 +19,107 @@ AI_GM_INSTRUCTIONS = """
 - 一律使用繁體中文（台灣）。
 - 扮演沉浸式、清楚、節制的遊戲主持人。
 - 保持目前場景與「燭芯礦坑事件」的脈絡。
-- 根據玩家輸入、目前場景、狀態記錄與行動紀錄回應。
-- 不替玩家決定下一步行動。
+- 根據玩家輸入、目前場景、狀態記錄、AI Judge 結果與骰子結果回應。
+- 不可控制玩家角色，不替玩家決定下一步行動。
 - 不直接宣告玩家成功，除非行動非常簡單、沒有風險。
+- 必須尊重 AI Judge 結果。
+- 如果 AI Judge 認定行動不可能，要描述限制或失敗，不可硬讓玩家成功。
+- 如果有骰子結果，必須根據骰子成功或失敗敘事。
 - 遇到危險、對抗、不確定或高風險行動時，要說明「可能需要檢定」。
 - 不加入完整規則、戰鬥系統、職業、HP、裝備或法術系統。
 - 不假裝有尚未實作的功能。
-- 回覆最後必須問：「你要怎麼做？」
+- 回覆最後要留下玩家下一步可行動空間，並問：「你要怎麼做？」
 
 回覆長度請控制在 2 到 5 個短段落。
 """.strip()
 
 
-def build_prompt(state: GameState, action: str) -> str:
+def build_prompt(
+    state: GameState,
+    action: str,
+    judge_result: dict | None = None,
+    dice_result: dict | None = None,
+) -> str:
     scene_name = SCENE_NAMES.get(state.current_scene, state.current_scene)
+    scene_description = SCENE_DESCRIPTIONS.get(state.current_scene, "目前場景描述尚未定義。")
     notes = _format_list(state.notes, "尚未記錄")
-    flags = _format_list(sorted(state.flags.keys()), "尚未觸發")
+    known_clues = _format_list(state.known_clues, "尚未發現")
+    inventory = _format_list(state.inventory, "沒有道具")
+    flags = _format_mapping(state.world_flags or state.flags, "尚未觸發")
+    npc_memory = _format_mapping(state.npc_memory, "尚無 NPC 記憶")
     recent_actions = _format_list(state.action_log[-8:], "尚無行動紀錄")
+    completed = _format_list(state.completed_objectives, "尚未完成")
+    failed = _format_list(state.failed_objectives, "尚未失敗")
 
     return f"""
-冒險名稱：燭芯礦坑事件
+{AI_GM_INSTRUCTIONS}
+
+冒險前提：
+{ADVENTURE_PREMISE}
+
 目前場景：{scene_name}
+目前位置：{state.current_location}
+場景描述：{scene_description}
 內部場景 ID：{state.current_scene}
+玩家角色：{state.player_name}
+HP：{state.hp}/{state.max_hp}
 回合數：{state.turn_count}
 是否已結束：{state.ended}
 目前結局：{state.ending or "尚未抵達結局"}
 
-已知線索：
+玩家這回合輸入：
+{action}
+
+AI Judge 結果：
+{json.dumps(judge_result or {}, ensure_ascii=False, indent=2)}
+
+骰子結果：
+{json.dumps(dice_result or {}, ensure_ascii=False, indent=2)}
+
+目前線索：
+{known_clues}
+
+狀態記錄：
 {notes}
 
-已觸發事件：
+道具：
+{inventory}
+
+世界事件：
 {flags}
+
+NPC 記憶：
+{npc_memory}
+
+已完成目標：
+{completed}
+
+失敗目標：
+{failed}
 
 最近玩家行動：
 {recent_actions}
-
-玩家這回合輸入：
-{action}
 
 請以 AI Game Master 的口吻回應玩家。不要輸出狀態 JSON，不要列出內部 ID。
 """.strip()
 
 
-def ask_ai_gm(state: GameState, action: str) -> str:
+def ask_ai_gm(
+    state: GameState,
+    action: str,
+    judge_result: dict | None = None,
+    dice_result: dict | None = None,
+) -> str:
+    prompt = build_prompt(state, action, judge_result, dice_result)
+    provider = os.getenv("AIGMOS_AI_PROVIDER", "ollama").lower()
+
+    if provider == "openai":
+        return ask_openai_ai_gm(prompt)
+
+    return generate_local_response(prompt)
+
+
+def ask_openai_ai_gm(prompt: str) -> str:
     api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
         return MISSING_API_KEY_MESSAGE
@@ -70,12 +130,12 @@ def ask_ai_gm(state: GameState, action: str) -> str:
         return "找不到 openai 套件，請先安裝：pip install openai"
 
     client = OpenAI(api_key=api_key)
-    model = os.getenv("AIGMOS_OPENAI_MODEL", DEFAULT_MODEL)
+    model = os.getenv("AIGMOS_OPENAI_MODEL", DEFAULT_OPENAI_MODEL)
 
     response = client.responses.create(
         model=model,
         instructions=AI_GM_INSTRUCTIONS,
-        input=build_prompt(state, action),
+        input=prompt,
         max_output_tokens=600,
     )
 
@@ -86,6 +146,12 @@ def _format_list(items: list[Any], empty_text: str) -> str:
     if not items:
         return f"- {empty_text}"
     return "\n".join(f"- {item}" for item in items)
+
+
+def _format_mapping(mapping: dict[Any, Any], empty_text: str) -> str:
+    if not mapping:
+        return f"- {empty_text}"
+    return "\n".join(f"- {key}: {value}" for key, value in mapping.items())
 
 
 def _extract_output_text(response: Any) -> str:
