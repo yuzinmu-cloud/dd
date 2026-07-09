@@ -5,7 +5,10 @@ from pathlib import Path
 
 from adventure import HELP_TEXT, OPENING_NARRATION, describe_current_scene, handle_action, status_text
 from ai_gm import ask_ai_gm
+from dice import format_check_result, resolve_check
 from game_state import GameState
+from judge import evaluate_action
+from playtest import log_turn
 
 
 SAVE_FILE = Path(__file__).with_name("save_game.json")
@@ -19,7 +22,7 @@ YES_COMMANDS = {"y", "yes", "是", "好", "讀取"}
 
 
 def main() -> None:
-    print("AIGMOS Demo v0.3")
+    print("AIGMOS Demo v0.4")
     print("輸入「幫助」查看可用指令。輸入「離開」結束冒險。")
     print()
 
@@ -66,10 +69,18 @@ def main() -> None:
             print(describe_current_scene(state) if not state.ended else "這段冒險已經抵達結局。")
             continue
 
+        judge_result = evaluate_action(state, action)
+        dice_result = None
+        if judge_result["is_possible"] and judge_result["requires_roll"]:
+            dice_result = resolve_check(judge_result["dc"])
+            print(format_check_result(dice_result))
+
         state.record_action(action)
-        response = ask_ai_gm(state, action)
-        handle_action(state, action, record=False)
+        response = ask_ai_gm(state, action, judge_result, dice_result)
+        if judge_result["is_possible"]:
+            handle_action(state, action, record=False)
         print(response)
+        log_turn(state, action, judge_result, dice_result, response)
 
         if state.ended:
             print()
