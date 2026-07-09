@@ -21,6 +21,16 @@ DEFAULT_UPDATE = {
 }
 
 
+def apply_structured_update(state: GameState, structured_update: dict[str, Any]) -> dict[str, Any]:
+    update = _new_update()
+    for key in update:
+        if key in structured_update:
+            update[key] = structured_update[key]
+
+    _apply_update(state, update)
+    return update
+
+
 def apply_state_update(
     state: GameState,
     action: str,
