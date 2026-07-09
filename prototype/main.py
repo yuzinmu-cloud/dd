@@ -81,14 +81,25 @@ def main() -> None:
         raw_response = ask_ai_gm(state, action, judge_result, dice_result)
         parsed_response = parse_ai_response(raw_response)
         narration = parsed_response["narration"] or raw_response
+        fallback_used = not parsed_response["is_valid"]
 
-        if parsed_response["is_valid"]:
-            state_update = apply_structured_update(state, parsed_response["structured_update"])
-        else:
+        if fallback_used:
             state_update = apply_state_update(state, action, judge_result, dice_result, narration)
+        else:
+            state_update = apply_structured_update(state, parsed_response["structured_update"])
 
         print(narration)
-        log_turn(state, action, judge_result, dice_result, narration, state_update)
+        log_turn(
+            state,
+            action,
+            judge_result,
+            dice_result,
+            narration,
+            state_update,
+            raw_ai_response=raw_response,
+            parsed_response=parsed_response,
+            fallback_used=fallback_used,
+        )
 
         if state.ended:
             print()
