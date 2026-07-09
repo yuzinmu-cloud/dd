@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Optional
 
 
 SCENE_IDS = [
@@ -19,7 +19,7 @@ class GameState:
     scene_index: int = 0
     turn_count: int = 0
     ended: bool = False
-    ending: str | None = None
+    ending: Optional[str] = None
     flags: dict[str, bool] = field(default_factory=dict)
     notes: list[str] = field(default_factory=list)
     action_log: list[str] = field(default_factory=list)
