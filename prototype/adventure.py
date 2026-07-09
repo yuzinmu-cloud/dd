@@ -3,27 +3,51 @@ from __future__ import annotations
 from game_state import GameState
 
 
+ADVENTURE_TITLE_DISPLAY = "燭芯礦坑事件"
+
 OPENING_NARRATION = """
-The Candlewick Mine Incident
+燭芯礦坑事件
 
-Rain needles across your cloak as you reach the frontier village of Graybarrow.
-Lanterns gutter in the storm. The old Candlewick Mine waits beyond the ridge,
-its abandoned tunnels flashing with pale lights that no miner will explain.
+暴雨拍打著你的斗篷。
 
-Three miners are missing. The village wants answers before dawn.
+當你踏入邊境村莊灰堤村時，整座村子異常安靜。
+只有酒館還亮著燈，遠方山脊下的廢棄礦坑卻不時閃過蒼白的燭光。
+
+三名礦工失蹤了。
+村民希望在天亮以前得到答案。
 """.strip()
 
 
-SCENE_DESCRIPTIONS = {
-    "village_inn": "You stand inside the village inn. Wet travelers whisper near the hearth, and the innkeeper watches you a little too carefully.",
-    "village_square": "The village square is slick with rain. A worried crowd gathers near a notice board while the village leader tries to keep order.",
-    "mine_entrance": "The mine entrance yawns open beneath the ridge. Broken warning signs hang from old posts, and fresh bootprints vanish into the dark.",
-    "mine_interior": "Inside the mine, water drips through cracked beams. Strange candle-colored lights move deeper in the tunnel.",
-    "final_chamber": "You reach a final chamber where the missing miners' trail, the strange lights, and the village's secrets converge.",
+SCENE_NAMES = {
+    "village_inn": "酒館",
+    "village_square": "村莊廣場",
+    "mine_entrance": "礦坑入口",
+    "mine_interior": "礦坑深處",
+    "final_chamber": "礦坑最深處",
 }
 
+SCENE_DESCRIPTIONS = {
+    "village_inn": "你站在村裡唯一還亮著燈的酒館中。濕透的旅人低聲交談，酒館老闆看著你的眼神比她願意承認的更警覺。",
+    "village_square": "村莊廣場被雨水沖得發亮。幾名村民聚在告示牌旁，村長努力壓低眾人的恐慌。",
+    "mine_entrance": "礦坑入口在山脊下張著黑暗的口。破裂的警告牌掛在木樁上，新鮮的腳印一路消失在坑道裡。",
+    "mine_interior": "礦坑深處傳來滴水聲。腐朽的支架在黑暗中傾斜，燭色微光在更深處緩緩游移。",
+    "final_chamber": "你抵達礦坑最深處。失蹤礦工的線索、怪異燭光，以及村子隱瞞的祕密都在這裡交會。",
+}
 
-HELP_TEXT = "Commands: type any action, or use save, load, status, help, quit."
+FLAG_LABELS = {
+    "questioned_innkeeper": "詢問過酒館老闆",
+    "met_village_leader": "見過村長",
+    "heard_family_plea": "聽見失蹤礦工家屬的請求",
+    "found_fresh_tracks": "發現通往礦坑的新鮮腳印",
+    "noticed_warning_signs": "注意到礦坑警告牌",
+    "handled_environmental_danger": "小心處理礦坑內的危險支架",
+    "followed_strange_lights": "跟隨奇異燭光前進",
+    "prioritized_rescue": "選擇優先救援",
+    "prioritized_confrontation": "選擇正面對抗",
+    "prioritized_truth": "選擇揭露真相",
+}
+
+HELP_TEXT = "可用指令：幫助/help、狀態/status、存檔/save、讀檔/load、離開/quit。除此之外，你可以直接輸入想做的行動。"
 
 
 def describe_current_scene(state: GameState) -> str:
@@ -31,14 +55,21 @@ def describe_current_scene(state: GameState) -> str:
 
 
 def status_text(state: GameState) -> str:
-    notes = "; ".join(state.notes) if state.notes else "none yet"
-    flags = ", ".join(sorted(state.flags)) if state.flags else "none yet"
+    notes = "\n".join(f"- {note}" for note in state.notes) if state.notes else "尚未記錄"
+    flags = "\n".join(f"- {FLAG_LABELS.get(flag, flag)}" for flag in sorted(state.flags)) if state.flags else "尚未觸發"
+    scene_name = SCENE_NAMES.get(state.current_scene, state.current_scene)
     return (
-        f"Adventure: {state.adventure_title}\n"
-        f"Scene: {state.current_scene}\n"
-        f"Turns: {state.turn_count}\n"
-        f"Notes: {notes}\n"
-        f"Flags: {flags}"
+        "====================\n"
+        "目前狀態\n"
+        "====================\n"
+        f"冒險：{ADVENTURE_TITLE_DISPLAY}\n"
+        f"目前位置：{scene_name}\n"
+        f"回合數：{state.turn_count}\n"
+        "線索：\n"
+        f"{notes}\n"
+        "事件：\n"
+        f"{flags}\n"
+        "===================="
     )
 
 
@@ -60,148 +91,148 @@ def handle_action(state: GameState, action: str) -> str:
     if state.current_scene == "final_chamber":
         return handle_final_chamber(state, cleaned)
 
-    return "The AI GM pauses. Something about the scene state is unknown."
+    return "遊戲主持人停頓了一下。目前的場景狀態無法辨識。"
 
 
 def handle_village_inn(state: GameState, action: str) -> str:
-    if has_any(action, "innkeeper", "talk", "ask", "question", "rumor"):
+    if has_any(action, "innkeeper", "talk", "ask", "question", "rumor", "老闆", "酒館老闆", "交談", "詢問", "打聽", "傳聞"):
         state.set_flag("questioned_innkeeper")
-        state.add_note("The innkeeper hinted that the mine lights started after the last survey crew returned.")
+        state.add_note("酒館老闆暗示，礦坑異光是在上一批探勘隊回來之後才開始出現的。")
         return (
-            "The innkeeper dries a cup that is already clean. She admits the lights began after the last survey crew came back pale and silent. "
-            "She points you toward the village square, where the leader is trying to calm the families."
+            "酒館老闆擦著早已乾淨的杯子，聲音壓得很低。她承認，那些燭色微光是在上一批探勘隊蒼白返村後才出現的。"
+            "她朝窗外的廣場看了一眼，暗示村長正在那裡安撫失蹤者的家屬。"
         )
 
-    if has_any(action, "square", "leave", "outside", "leader", "families", "continue"):
+    if has_any(action, "square", "leave", "outside", "leader", "families", "continue", "廣場", "離開", "外面", "村長", "家屬", "繼續"):
         state.advance_scene()
         return describe_current_scene(state)
 
-    state.add_note("The inn felt tense, and the innkeeper seemed to be hiding something.")
+    state.add_note("酒館裡氣氛緊繃，酒館老闆似乎隱瞞了某些事情。")
     return (
-        "You take in the room: muddy boots, quiet miners, a map with the mine road marked in charcoal. "
-        "The AI GM suggests a clear next step: question the innkeeper or head to the village square."
+        "你環顧酒館：泥濘的靴印、沉默的礦工、牆上一張用炭筆標出礦坑道路的舊地圖。"
+        "遊戲主持人給出明確的下一步：你可以詢問酒館老闆，或前往村莊廣場。"
     )
 
 
 def handle_village_square(state: GameState, action: str) -> str:
-    if has_any(action, "leader", "mayor", "elder", "quiet", "briefing"):
+    if has_any(action, "leader", "mayor", "elder", "quiet", "briefing", "村長", "長老", "安靜", "簡報", "說明"):
         state.set_flag("met_village_leader")
-        state.add_note("The village leader wants the problem solved quietly before panic spreads.")
+        state.add_note("村長希望事情在恐慌擴散前低調解決。")
         return (
-            "The village leader lowers their voice. They want the missing miners found, but they also want the incident kept quiet. "
-            "They give you permission to inspect the mine entrance."
+            "村長把你帶到雨聲較小的屋簷下。他承認村子需要找回失蹤礦工，卻也害怕消息傳開後再也沒有人敢靠近這裡。"
+            "他同意讓你前往礦坑入口調查。"
         )
 
-    if has_any(action, "relative", "family", "miner", "missing", "urgent"):
+    if has_any(action, "relative", "family", "miner", "missing", "urgent", "家屬", "親人", "礦工", "失蹤", "急", "求助"):
         state.set_flag("heard_family_plea")
-        state.add_note("A missing miner's relative believes someone heard knocking from inside the sealed tunnel.")
+        state.add_note("失蹤礦工的親人相信，有人曾聽見封閉坑道裡傳出敲擊聲。")
         return (
-            "A missing miner's relative grabs your sleeve and begs you not to wait for morning. "
-            "They say someone heard knocking below the old sealed tunnel."
+            "一名失蹤礦工的親人抓住你的袖口，懇求你不要等到天亮。"
+            "他說，有人在舊封閉坑道下方聽見過微弱的敲擊聲。"
         )
 
-    if has_any(action, "mine", "entrance", "ridge", "go", "continue"):
+    if has_any(action, "mine", "entrance", "ridge", "go", "continue", "礦坑", "入口", "山脊", "前往", "繼續"):
         state.advance_scene()
         return describe_current_scene(state)
 
     return (
-        "Rain runs through the square in silver lines. You can speak with the village leader, listen to a missing miner's relative, "
-        "or head toward the mine entrance."
+        "雨水沿著廣場石縫流成銀線。你可以和村長談談，聽失蹤礦工家屬說明，"
+        "或直接往礦坑入口前進。"
     )
 
 
 def handle_mine_entrance(state: GameState, action: str) -> str:
-    if has_any(action, "tracks", "boot", "footprint", "inspect", "search"):
+    if has_any(action, "tracks", "boot", "footprint", "inspect", "search", "腳印", "靴印", "檢查", "調查", "搜尋"):
         state.set_flag("found_fresh_tracks")
-        state.add_note("Fresh bootprints lead into the abandoned mine, but none return.")
+        state.add_note("新鮮腳印通往廢棄礦坑，但沒有任何離開的痕跡。")
         return (
-            "You kneel in the mud. Fresh bootprints lead into the mine, but the rain has not softened any returning tracks. "
-            "Whatever happened, the missing miners likely went in and stayed in."
+            "你在泥地裡蹲下。新鮮腳印一路通往礦坑深處，雨水卻沒有沖出任何返回的痕跡。"
+            "不論發生了什麼，失蹤者很可能進去了，卻沒有出來。"
         )
 
-    if has_any(action, "sign", "warning", "listen", "light", "lantern"):
+    if has_any(action, "sign", "warning", "listen", "light", "lantern", "告示", "警告", "聆聽", "光", "燭光", "提燈"):
         state.set_flag("noticed_warning_signs")
-        state.add_note("Old warning signs mention unstable beams and sealed lower passages.")
+        state.add_note("舊警告牌提到支架不穩與封閉下層坑道。")
         return (
-            "Your lantern catches a cracked warning sign: unstable beams, sealed lower passages, no entry after dusk. "
-            "A faint candle-colored flicker answers from inside the tunnel."
+            "你的提燈照亮一塊裂開的警告牌：支架不穩、下層封閉、日落後禁止進入。"
+            "就在這時，一點燭色微光從坑道深處回應似地閃了一下。"
         )
 
-    if has_any(action, "enter", "inside", "mine", "go", "continue"):
+    if has_any(action, "enter", "inside", "mine", "go", "continue", "進入", "裡面", "礦坑", "前進", "繼續"):
         state.advance_scene()
         return describe_current_scene(state)
 
-    return "The mine waits. You can inspect the tracks, study the warning signs, listen at the entrance, or enter."
+    return "礦坑在雨中沉默地等待。你可以檢查腳印、查看警告牌、在入口聆聽，或直接進入。"
 
 
 def handle_mine_interior(state: GameState, action: str) -> str:
-    if has_any(action, "beam", "danger", "careful", "avoid", "brace"):
+    if has_any(action, "beam", "danger", "careful", "avoid", "brace", "支架", "危險", "小心", "避開", "撐住", "加固"):
         state.set_flag("handled_environmental_danger")
-        state.add_note("The player handled unstable beams carefully inside the mine.")
+        state.add_note("你小心處理了礦坑內不穩的支架。")
         return (
-            "You move carefully and brace a sagging beam before passing. Behind it, you find a dropped mining token near a side passage. "
-            "The mine seems dangerous, but not random. Someone came this way in a hurry."
+            "你放慢腳步，用一段斷木撐住下沉的橫樑後才通過。橫樑後方，你發現一枚掉落的礦工識別牌。"
+            "這座礦坑很危險，但危險並非毫無脈絡。有人曾倉皇經過這裡。"
         )
 
-    if has_any(action, "light", "follow", "clue", "token", "deeper", "sound"):
+    if has_any(action, "light", "follow", "clue", "token", "deeper", "sound", "光", "燭光", "跟隨", "線索", "識別牌", "更深", "聲音"):
         state.set_flag("followed_strange_lights")
-        state.add_note("The strange lights led deeper toward the final chamber.")
+        state.add_note("奇異燭光將你引向礦坑最深處。")
         return (
-            "The candle-colored lights drift ahead, always just beyond reach. They do not attack. They guide. "
-            "A low knocking echoes from the final chamber."
+            "燭色微光在前方漂移，始終保持著一步之遙。它們沒有攻擊你，反而像是在引路。"
+            "低沉的敲擊聲從礦坑最深處傳來。"
         )
 
-    if has_any(action, "final", "chamber", "continue", "go", "forward"):
+    if has_any(action, "final", "chamber", "continue", "go", "forward", "最深處", "房間", "繼續", "前進", "往前"):
         state.advance_scene()
         return describe_current_scene(state)
 
     return (
-        "The tunnel narrows. You can deal with the unstable beams, follow the strange lights, search for clues, "
-        "or press onward to the final chamber."
+        "坑道越來越狹窄。你可以處理不穩的支架、跟隨奇異燭光、搜尋線索，"
+        "或繼續前往礦坑最深處。"
     )
 
 
 def handle_final_chamber(state: GameState, action: str) -> str:
-    if has_any(action, "rescue", "help", "free", "save", "miners"):
+    if has_any(action, "rescue", "help", "free", "save", "miners", "救援", "幫助", "放出", "拯救", "礦工"):
         state.set_flag("prioritized_rescue")
         state.ending = "rescue_focused"
         state.ended = True
         return ending_text(state)
 
-    if has_any(action, "fight", "attack", "confront", "threat", "danger"):
+    if has_any(action, "fight", "attack", "confront", "threat", "danger", "戰鬥", "攻擊", "對抗", "威脅", "危險", "決戰"):
         state.set_flag("prioritized_confrontation")
         state.ending = "confrontation_focused"
         state.ended = True
         return ending_text(state)
 
-    if has_any(action, "truth", "evidence", "reveal", "ask", "investigate", "explain"):
+    if has_any(action, "truth", "evidence", "reveal", "ask", "investigate", "explain", "真相", "證據", "揭露", "詢問", "調查", "解釋"):
         state.set_flag("prioritized_truth")
         state.ending = "truth_revealing"
         state.ended = True
         return ending_text(state)
 
     return (
-        "The final chamber demands a choice. You can focus on rescuing the missing miners, confronting the danger, "
-        "or revealing the truth behind the incident."
+        "礦坑最深處逼你做出選擇。你可以優先救出失蹤礦工，正面對抗眼前的危險，"
+        "或揭露燭芯礦坑事件背後的真相。"
     )
 
 
 def ending_text(state: GameState) -> str:
     if state.ending == "rescue_focused":
         return (
-            "Ending: Rescue-focused.\n"
-            "You put the missing miners first. The village may still argue over blame, but lives are brought back into the rain."
+            "【救援結局】\n"
+            "你把失蹤礦工的性命放在第一位。村子或許仍會爭論責任歸屬，但至少有人活著回到了雨中。"
         )
 
     if state.ending == "confrontation_focused":
         return (
-            "Ending: Confrontation-focused.\n"
-            "You face the mine's danger directly. The threat is stopped for now, though some truths remain buried in Candlewick Mine."
+            "【決戰結局】\n"
+            "你正面迎向礦坑裡的危險，暫時阻止了威脅。只是燭芯礦坑仍有一些真相，被埋在黑暗裡。"
         )
 
     return (
-        "Ending: Truth-revealing.\n"
-        "You expose enough of the hidden story for Graybarrow to understand what happened. The village cannot easily return to silence."
+        "【真相結局】\n"
+        "你揭開了足夠多的隱情，讓灰堤村無法再用沉默掩蓋這場事件。雨還在下，但村子已經不同了。"
     )
 
 
