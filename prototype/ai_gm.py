@@ -12,6 +12,19 @@ from local_ai import generate_local_response
 MISSING_API_KEY_MESSAGE = "找不到 OPENAI_API_KEY，請先設定 API 金鑰。"
 DEFAULT_OPENAI_MODEL = "gpt-4.1-mini"
 
+STRUCTURED_UPDATE_SCHEMA = {
+    "clues_added": [],
+    "flags_added": [],
+    "npc_memories_added": [],
+    "inventory_added": [],
+    "inventory_removed": [],
+    "hp_delta": 0,
+    "objectives_completed": [],
+    "objectives_failed": [],
+    "ending": None,
+    "notes_added": [],
+}
+
 AI_GM_INSTRUCTIONS = """
 你是 AIGMOS 的 AI Game Master，負責主持一場 DND 風格的單人文字 TRPG 冒險。
 
@@ -28,9 +41,21 @@ AI_GM_INSTRUCTIONS = """
 - 遇到危險、對抗、不確定或高風險行動時，要說明「可能需要檢定」。
 - 不加入完整規則、戰鬥系統、職業、HP、裝備或法術系統。
 - 不假裝有尚未實作的功能。
-- 回覆最後要留下玩家下一步可行動空間，並問：「你要怎麼做？」
 
-回覆長度請控制在 2 到 5 個短段落。
+輸出格式必須分成兩段，並使用完全相同的標記：
+
+===NARRATION===
+玩家可見敘事。請用 2 到 5 個短段落。最後要留下玩家下一步可行動空間，並問：「你要怎麼做？」
+
+===STATE_UPDATE_JSON===
+一個 JSON object。只能包含指定 schema 欄位。不要使用 markdown code block。不要在 JSON 後面補文字。
+
+STATE_UPDATE_JSON 規則：
+- 如果沒有要更新的內容，使用空陣列、0 或 null。
+- clues_added、flags_added、inventory_added、inventory_removed、objectives_completed、objectives_failed、notes_added 必須是字串陣列。
+- npc_memories_added 必須是物件陣列，每個物件格式為 {"npc": "名字", "memory": "記憶"}。
+- hp_delta 必須是整數。
+- ending 必須是 null、"rescue_focused"、"truth_revealing"、"confrontation_focused" 或 "failure"。
 """.strip()
 
 
@@ -53,6 +78,9 @@ def build_prompt(
 
     return f"""
 {AI_GM_INSTRUCTIONS}
+
+Structured update schema 範本：
+{json.dumps(STRUCTURED_UPDATE_SCHEMA, ensure_ascii=False, indent=2)}
 
 冒險前提：
 {ADVENTURE_PREMISE}
@@ -100,7 +128,7 @@ NPC 記憶：
 最近玩家行動：
 {recent_actions}
 
-請以 AI Game Master 的口吻回應玩家。不要輸出狀態 JSON，不要列出內部 ID。
+請嚴格依照兩段格式輸出：先輸出 ===NARRATION===，再輸出 ===STATE_UPDATE_JSON===。
 """.strip()
 
 
