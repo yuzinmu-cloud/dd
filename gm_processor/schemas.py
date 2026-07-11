@@ -4,10 +4,18 @@ from typing import Any
 
 from pydantic import BaseModel, Field, ValidationError
 
+try:
+    from pydantic import ConfigDict
+except ImportError:  # Pydantic v1 compatibility
+    ConfigDict = None
+
 
 class StrictModel(BaseModel):
-    class Config:
-        extra = "forbid"
+    if ConfigDict is not None:
+        model_config = ConfigDict(extra="forbid")
+    else:
+        class Config:
+            extra = "forbid"
 
 
 class TurnInput(StrictModel):
