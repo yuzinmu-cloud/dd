@@ -70,6 +70,7 @@ def _ability_score(character: Any, name: str) -> int | None:
 
 def _default_ability(action: StandardAction, routed: str) -> str:
     if action.action_category in {"social"}: return "Charisma"
+    if action.action_category == "steal": return "Dexterity"
     if action.action_category in {"stealth", "skill_check"}: return "Dexterity" if action.action_category == "stealth" else "Intelligence"
     return "Strength"
 

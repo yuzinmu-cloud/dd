@@ -94,11 +94,13 @@ def _input_payload(prompt: str) -> dict[str, Any]:
 def _intent(text: str) -> str:
     mapping = (
         (("殺死", "殺", "砍", "刺", "攻擊", "揍", "射"), "attack"),
+        (("偷偷", "潛行", "隱藏"), "stealth"),
         (("偷走", "偷", "竊取"), "steal"),
         (("製作", "利用", "組合", "創意"), "creative_action"),
         (("調查", "檢查", "尋找", "觀察", "診斷"), "investigate"),
         (("說服", "交涉", "詢問"), "social"),
         (("前往", "移動", "離開"), "move"),
+        (("拿起", "取得", "撿起", "裝備", "放下"), "inventory"),
         (("跳",), "move"),
         (("飛",), "move"),
         (("破解",), "investigate"),
@@ -120,6 +122,9 @@ def _target(text: str, context: dict[str, Any]) -> str | None:
             for alias in (role, role[-2:], role[-3:]):
                 if alias in text:
                     return alias
+        for alias in npc.get("aliases", []):
+            if alias in text:
+                return alias
     return None
 
 

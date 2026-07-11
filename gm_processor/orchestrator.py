@@ -157,4 +157,5 @@ class TurnOrchestrator:
             narration="系統暫時無法安全處理這個回合。請確認輸入資料與本機 AI 狀態後再試一次。",
             warnings=warnings,
             errors=errors or ["未知錯誤。"],
+            resolution_status="failed_validation",
         )

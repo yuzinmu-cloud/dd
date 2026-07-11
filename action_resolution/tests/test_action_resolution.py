@@ -17,7 +17,7 @@ def context():
         proficiency_bonus=2, skill_proficiencies=["Investigation"], saving_throw_proficiencies=["Strength"],
         weapon_proficiencies=["blade"], equipped_weapon="blade",
     )
-    npc=SimpleNamespace(npc_id="target-generic", name="Target", role="NPC", armor_class=12)
+    npc=SimpleNamespace(npc_id="target-generic", name="Target", role="NPC", aliases=["Target Alias"], armor_class=12)
     return SimpleNamespace(character=character, adventure=SimpleNamespace(relevant_npcs=[npc]), rules=SimpleNamespace(active_rule_overrides={"default_dc":17}))
 
 
@@ -55,6 +55,30 @@ def test_category_integration_matrix(case_id, intent, expected_route):
 def test_unknown_intent_is_not_forced_to_known_rule():
     action=classify(interpretation("completely_new_intent"),context())
     assert action.action_category=="unsupported"
+
+
+@pytest.mark.parametrize("alias", ["steal", "theft", "pickpocket", "pilfer", "偷", "偷竊", "偷走", "竊取", "扒竊"])
+def test_steal_aliases_share_one_standard_category(alias):
+    action=classify(interpretation(alias,target="Target",obj="item"),context())
+    assert action.primary_intent=="steal" and action.action_category=="steal"
+
+
+def test_steal_and_stealth_are_distinct():
+    assert classify(interpretation("steal"),context()).action_category=="steal"
+    assert classify(interpretation("stealth"),context()).action_category=="stealth"
+
+
+def test_steal_missing_object_requires_clarification():
+    engine=ActionResolutionEngine(PACK);action=classify(interpretation("steal",target="Target"),context())
+    result=engine.resolve_action(engine.build_rule_request(action,context()),context())
+    assert result.status=="pending_clarification"
+    assert "object" in [item.field for item in result.feasibility.missing_fields]
+    assert result.rule_result is None and result.state_change_proposal=={}
+
+
+def test_target_alias_resolves_to_context_npc():
+    action=classify(interpretation("steal",target="Target Alias",obj="item"),context())
+    assert action.target.target_id=="target-generic"
 
 
 def test_compound_action_preserves_secondary_and_sequence():

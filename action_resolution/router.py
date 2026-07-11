@@ -6,6 +6,7 @@ ROUTES = {
     "attack": "attack", "ability_check": "ability_check", "skill_check": "skill_check",
     "saving_throw": "saving_throw", "initiative": "initiative", "movement": "movement",
     "interaction": "interaction", "inventory": "inventory", "use_item": "use_item",
+    "steal": "skill_check",
     "social": "skill_check", "stealth": "skill_check", "rest": "no_roll_action",
     "no_roll_action": "no_roll_action", "cast_spell": "unsupported",
     "unsupported": "unsupported", "ambiguous": "clarification",

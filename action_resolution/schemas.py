@@ -8,7 +8,7 @@ from rule_engine.schemas import RuleRequest, RuleResult
 ACTION_CATEGORIES = (
     "attack", "ability_check", "skill_check", "saving_throw", "movement", "interaction",
     "inventory", "use_item", "social", "stealth", "rest", "initiative", "cast_spell",
-    "improvised_action", "no_roll_action", "unsupported", "ambiguous",
+    "improvised_action", "no_roll_action", "steal", "unsupported", "ambiguous",
 )
 ActionCategory = Literal[*ACTION_CATEGORIES]
 

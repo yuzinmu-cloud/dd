@@ -42,6 +42,16 @@ class Narrator:
         context: GMContext,
         action_resolution: ActionResolutionResult | None = None,
     ) -> tuple[NarrationResult | None, list[str], list[str]]:
+        if action_resolution and action_resolution.status == "pending_clarification":
+            target = (
+                action_resolution.standard_action.target.label
+                if action_resolution.standard_action.target
+                else "目標"
+            )
+            missing = {item.field for item in action_resolution.feasibility.missing_fields}
+            if "object" in missing:
+                return NarrationResult(narration=f"你想從{target}身上偷走什麼？"), [], []
+            return NarrationResult(narration="請補充這個行動所缺少的必要資訊。"), [], []
         if ruling.requires_roll and resolution.success is None:
             target = interpretation.target or "目標"
             action = interpretation.raw_player_input or interpretation.player_goal or interpretation.primary_intent

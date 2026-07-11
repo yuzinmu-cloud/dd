@@ -71,6 +71,7 @@ class NPCContext(StrictModel):
     name: str
     role: str | None
     description: str
+    aliases: list[str] = Field(default_factory=list)
     known_facts: list[str]
     hidden_facts: list[str]
     goals: list[str]

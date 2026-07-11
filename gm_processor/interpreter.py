@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Any
+from action_resolution.intents import STEAL_MARKERS, normalize_intent
 
 try:
     from .ai_provider import AIProvider
@@ -30,16 +31,13 @@ class Interpreter:
         payload = dict(payload)
         if not payload.get("raw_player_input"):
             payload["raw_player_input"] = player_input
-        intent_aliases = {
-            "kill": "attack",
-            "violent_action": "attack",
-            "violence": "attack",
-            "hostile": "hostile_action",
-            "inquiry": "ask",
-            "theft": "steal",
-        }
-        raw_intent = str(payload.get("primary_intent", "")).strip().lower()
-        payload["primary_intent"] = intent_aliases.get(raw_intent, payload.get("primary_intent"))
+        normalized_intent, normalization_warning = normalize_intent(
+            str(payload.get("primary_intent", "")), player_input
+        )
+        payload["primary_intent"] = normalized_intent
+        confidence = payload.get("confidence")
+        if isinstance(confidence, (int, float)) and 1 < confidence <= 100:
+            payload["confidence"] = confidence / 100
         hostile_input = any(word in player_input for word in ("殺", "砍", "刺", "攻擊", "揍", "射"))
         if hostile_input:
             payload["hostility"] = True
@@ -47,9 +45,19 @@ class Interpreter:
         else:
             payload.setdefault("hostility", False)
             payload.setdefault("risk_level", "unknown")
-        if not payload.get("target"):
-            payload["target"] = _explicit_target(player_input, context)
+        explicit_target = _explicit_target(player_input, context)
+        model_target = payload.get("target")
+        if explicit_target and (
+            not model_target or explicit_target in str(model_target) or str(model_target) in explicit_target
+        ):
+            payload["target"] = explicit_target
+        if normalized_intent == "steal" and not payload.get("object"):
+            payload["object"] = _explicit_object(player_input)
+        if normalized_intent == "steal" and not payload.get("object"):
+            payload["ambiguity"] = payload.get("ambiguity") or "偷竊行動缺少要取得的物品。"
         result, warnings, errors = self.validator.validate_interpretation(player_input, context, payload)
+        if normalization_warning:
+            warnings.append(normalization_warning)
         if result is not None and result.ambiguity:
             warnings.append(f"玩家行動存在歧義：{result.ambiguity}")
         return result, warnings, errors
@@ -57,10 +65,21 @@ class Interpreter:
 
 def _explicit_target(player_input: str, context: GMContext) -> str | None:
     for npc in context.adventure.relevant_npcs:
-        if npc.name in player_input:
-            return npc.name
+        candidates = [npc.name, npc.role, *npc.aliases]
+        for candidate in candidates:
+            if candidate and candidate in player_input:
+                return candidate
         if npc.role:
-            for alias in (npc.role, npc.role[-2:], npc.role[-3:]):
-                if alias in player_input:
-                    return alias
+            for suffix in (npc.role[-2:], npc.role[-3:]):
+                if suffix in player_input:
+                    return suffix
+    return None
+
+
+def _explicit_object(player_input: str) -> str | None:
+    if not any(marker in player_input for marker in STEAL_MARKERS):
+        return None
+    if "的" in player_input:
+        candidate = player_input.rsplit("的", 1)[1].strip(" 。！？!?，,")
+        return candidate or None
     return None

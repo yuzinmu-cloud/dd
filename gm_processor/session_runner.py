@@ -36,9 +36,10 @@ def run_session(initial_context: Any, input_provider: InputProvider, output_hand
     status = "active"
     pending_input: str | None = None
     pending_request: dict[str, Any] | None = None
+    pending_mode: str | None = None
 
     while status == "active":
-        request_type = "dice_result" if pending_input is not None else "player_input"
+        request_type = pending_mode or "player_input"
         request = {
             "type": request_type,
             "context": model_to_dict(context),
@@ -60,7 +61,7 @@ def run_session(initial_context: Any, input_provider: InputProvider, output_hand
             break
 
         dice_result: DiceResult | None = None
-        if pending_input is not None:
+        if pending_input is not None and pending_mode == "dice_result":
             dice_result = _parse_roll(command)
             if dice_result is None:
                 message = "骰子格式錯誤，請輸入 roll <數字>，例如 roll 14。"
@@ -68,6 +69,8 @@ def run_session(initial_context: Any, input_provider: InputProvider, output_hand
                 _emit(output_handler, {"type": "warning", "message": message}, warnings)
                 continue
             player_input = pending_input
+        elif pending_input is not None and pending_mode == "clarification":
+            player_input = f"{pending_input}\n補充資訊：{command}"
         else:
             if not command:
                 message = "玩家輸入不可為空。"
@@ -97,14 +100,29 @@ def run_session(initial_context: Any, input_provider: InputProvider, output_hand
             if result.dice_request.needed:
                 pending_input = player_input
                 pending_request = model_to_dict(result.dice_request)
+                pending_mode = "dice_result"
+            elif result.resolution_status == "pending_clarification":
+                pending_input = player_input
+                pending_request = result.standard_action
+                pending_mode = "clarification"
             else:
                 warnings.append(f"回合等待必要資料：{result.resolution_status}")
                 pending_input = None
                 pending_request = None
+                pending_mode = None
+            continue
+
+        if _is_failed(result):
+            warnings.extend(result.warnings)
+            errors.extend(result.errors)
+            pending_input = None
+            pending_request = None
+            pending_mode = None
             continue
 
         pending_input = None
         pending_request = None
+        pending_mode = None
         before_update = context
         updated_context, apply_errors = apply_state_update(context, result.state_update)
         applied_diff = context_update_diff(before_update, updated_context)
@@ -158,6 +176,10 @@ def _is_pending(result: TurnResult, supplied_dice: DiceResult | None) -> bool:
     explicit_pending = bool(result.resolution_status and result.resolution_status.startswith("pending_"))
     legacy_dice_pending = result.dice_request.needed and supplied_dice is None
     return (explicit_pending or legacy_dice_pending) and result.resolution.success is None
+
+
+def _is_failed(result: TurnResult) -> bool:
+    return result.resolution_status in {"failed_validation", "provider_error", "interpreter_error"}
 
 
 def _update_history_and_session(

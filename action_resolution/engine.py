@@ -50,6 +50,8 @@ class ActionResolutionEngine:
         routed = request.rule_module
         if action.action_category == "ambiguous":
             return self._pending(action, feasibility, routed, request, "pending_clarification", "Action requires clarification.")
+        if feasibility.clarification_required:
+            return self._pending(action, feasibility, routed, request, "pending_clarification", "Required action detail is missing.")
         if routed == "unsupported" or action.action_category == "unsupported":
             return self._pending(action, feasibility, routed, request, "unsupported", "Rule Pack does not support this action.")
         if not feasibility.possible and feasibility.missing_fields:

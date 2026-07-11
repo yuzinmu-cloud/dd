@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from pydantic import BaseModel, ValidationError
+from action_resolution.intents import has_steal_semantics
 
 try:
     from .schemas import ActionInterpretation, GMContext, TurnInput, validate_model, validation_errors
@@ -41,11 +42,12 @@ class Validator:
         intent = result.primary_intent.strip().lower()
         families = (
             (("殺死", "殺", "砍", "刺", "攻擊", "揍", "射"), {"attack", "hostile", "hostile_action", "violence"}, "攻擊"),
-            (("偷走", "偷", "竊取"), {"steal", "theft", "pickpocket"}, "偷竊"),
             (("詢問", "問", "打聽"), {"ask", "social", "inquiry", "question"}, "詢問"),
             (("利用", "製作", "組合", "創意"), {"creative", "creative_action", "improvise", "craft"}, "創意行動"),
             (("調查", "檢查", "觀察", "尋找"), {"investigation", "investigate", "observe", "search"}, "調查"),
         )
+        if has_steal_semantics(player_input) and intent != "steal":
+            conflicts.append(f"玩家主要動詞屬於偷竊，但 primary_intent 為 {result.primary_intent}。")
         for keywords, allowed, label in families:
             if any(keyword in player_input for keyword in keywords):
                 if intent not in allowed:
@@ -53,12 +55,10 @@ class Validator:
                 break
         explicit_targets = []
         for npc in context.adventure.relevant_npcs:
-            if npc.name in player_input:
-                explicit_targets.append(npc.name)
+            candidates = [npc.name, npc.role, *npc.aliases]
+            explicit_targets.extend(candidate for candidate in candidates if candidate and candidate in player_input)
             if npc.role:
-                explicit_targets.extend(
-                    alias for alias in (npc.role, npc.role[-2:], npc.role[-3:]) if alias in player_input
-                )
+                explicit_targets.extend(alias for alias in (npc.role[-2:], npc.role[-3:]) if alias in player_input)
         if explicit_targets:
             if not result.target:
                 conflicts.append(f"玩家明確指定目標 {explicit_targets[0]}，但 target 為空。")

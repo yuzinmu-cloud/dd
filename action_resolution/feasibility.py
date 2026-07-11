@@ -4,6 +4,17 @@ from .schemas import FeasibilityResult, MissingField, StandardAction
 
 
 def analyze(action: StandardAction, context: Any, capabilities: set[str]) -> FeasibilityResult:
+    if action.action_category == "steal":
+        missing: list[MissingField] = []
+        if not action.target:
+            missing.append(MissingField(field="target", reason="Steal action requires an item holder or target."))
+        if not action.object:
+            missing.append(MissingField(field="object", reason="Steal action requires the item to take."))
+        if missing:
+            return FeasibilityResult(
+                possible=None, reason="Steal action requires clarification.", missing_fields=missing,
+                clarification_required=True, suggested_rule_categories=["steal"],
+            )
     if action.risk_level == "impossible":
         return FeasibilityResult(possible=False, reason="Context marks the action as impossible under current conditions.")
     if action.action_category == "ambiguous" or action.ambiguity:

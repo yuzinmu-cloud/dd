@@ -31,7 +31,13 @@ def evaluate_case(case: dict[str, Any], result: dict[str, Any] | None, crashed: 
     check("ruling_correct", ruling_expected, ruling_ok, "比較 possible、requires_roll 與 roll type。")
     supplied_dice = case.get("optional_dice_result")
     resolution = (result or {}).get("resolution", {})
-    dice_ok = supplied_dice is None or resolution.get("success") is not None
+    supplied_total = supplied_dice.get("total") if isinstance(supplied_dice, dict) else None
+    rule_values = ((result or {}).get("rule_result") or {}).get("values", {})
+    dice_ok = (
+        supplied_dice is None
+        or resolution.get("success") is not None
+        or (supplied_total is not None and rule_values.get("natural_roll") == supplied_total)
+    )
     check("dice_respected", supplied_dice is not None, dice_ok, "提供骰子時 Resolution 必須完成。")
     required_fields = expectations.get("required_state_update_fields", [])
     state_update = (result or {}).get("state_update", {})

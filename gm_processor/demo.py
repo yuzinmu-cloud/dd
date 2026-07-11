@@ -42,6 +42,8 @@ def main() -> None:
             dice = request.get("dice_request") or {}
             print(f"需要檢定：{dice.get('dice') or '未指定'}，難度：{dice.get('difficulty') or '未指定'}")
             return input("請輸入 roll <結果> > ").strip()
+        if request["type"] == "clarification":
+            return input("請補充必要資訊 > ").strip()
         return input("你要怎麼做？ > ").strip()
 
     def output_handler(event: dict) -> None:
@@ -79,7 +81,13 @@ def main() -> None:
             print(json.dumps(result["state_update"], ensure_ascii=False, indent=2))
             print("\nNarration")
             print(result["narration"])
-            if event.get("pending"):
+            if result.get("resolution_status") == "pending_clarification":
+                print("\nClarification Question")
+                print(result["narration"])
+                print("\n更新後狀態")
+                print(f"回合數（未增加）：{event['context']['session']['turn_number']}")
+                print("本回合新增線索： []")
+            if event.get("pending") or result.get("resolution_status") in {"failed_validation", "provider_error", "interpreter_error"}:
                 print("\nWarnings")
                 print(json.dumps(result["warnings"], ensure_ascii=False, indent=2))
                 print("\nErrors")

@@ -111,6 +111,8 @@ Demo 會額外顯示 Raw Player Input、Standard Action、Action Category、Feas
 
 所有需要 AC、DC、能力值或骰子的行動都必須由 Rule Context、GM-owned override 或外部骰子提供；LLM 不計算這些數值。
 
+偷竊使用獨立 `steal` Action Category，不與表示隱藏／潛行移動的 `stealth` 混用。若已知物品持有者但缺少物品，Session 會停在 clarification、不增加回合數，並保留原行動與 target 等待補充。
+
 選用安全 playtest log：
 
 ```powershell

@@ -44,7 +44,7 @@ class Judge:
         if action_result.status == "pending_rule_data":
             warnings.append(f"規則資料不足：{', '.join(action_result.rule_result.missing_fields if action_result.rule_result else [])}")
         possible = feasibility.possible is not False and action_result.status not in {"unsupported", "failed_validation"}
-        requires_roll = bool(request.external_roll_required)
+        requires_roll = bool(request.external_roll_required and action_result.status != "pending_clarification")
         ruling = Ruling(
             possible=possible,
             reason=feasibility.reason,
