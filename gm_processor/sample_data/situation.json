@@ -1,0 +1,16 @@
+{
+  "current_location": "河岸驛站",
+  "current_characters": [
+    {
+      "name": "阿岑",
+      "role": "驛站看守",
+      "attitude": "緊張但願意合作"
+    }
+  ],
+  "current_conflict": "昨夜有貨箱在河邊失蹤，地上留下濕泥腳印。",
+  "known_facts": [
+    "暴雨剛停。",
+    "驛站外有通往碼頭的小路。",
+    "阿岑聲稱自己整晚都在屋內。"
+  ]
+}
