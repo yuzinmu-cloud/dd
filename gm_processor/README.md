@@ -1,93 +1,80 @@
-# GM Processor 原型
+# GM Processor
 
-## 用途
+GM Processor 是 AIGMOS 的獨立單回合處理器。GM Context 是唯一正式輸入格式；`process_turn()` 不再接受分散的規則、角色、情境、世界狀態或歷史欄位。
 
-GM Processor 是 AIGMOS 的獨立單回合處理原型。
+## 正式輸入
 
-它接收玩家輸入、規則資料、角色資料、當前情境、世界狀態與近期事件，輸出一份結構化的 `TurnResult`，包含：
-
-- 玩家行動理解
-- 裁定結果
-- 是否需要擲骰
-- 解決結果
-- 狀態更新
-- 玩家可見敘事
-- warnings / errors
-
-本原型不依賴任何特定劇本，也不修改 `prototype/`。
-
-## 安裝方式
-
-建議使用 Python 3.10 以上。
-
-```bash
-pip install pydantic pytest
-```
-
-## Ollama 啟動方式
-
-請先安裝 Ollama：
-
-https://ollama.com
-
-啟動預設模型：
-
-```bash
-ollama run qwen2.5:7b
-```
-
-本原型會呼叫：
+每次呼叫使用新版 `TurnInput`：
 
 ```text
-http://localhost:11434/api/generate
+player_input
+context
+dice_result (optional)
 ```
 
-預設模型：
+`context` 是完整的 GM Context，由六個區段組成：
 
-```text
-qwen2.5:7b
-```
+- Rule Context：唯一規則裁定依據。
+- Character Context：玩家角色能力、裝備、狀態與限制。
+- World Context：客觀世界事實、地點與活躍狀態。
+- Adventure Context：當前事件、NPC、線索、目標及 GM 隱藏資訊。
+- History Context：近期事件、玩家決定與未解後果。
+- Session Context：本次 Session、回合編號與近期對話。
 
-可用環境變數覆蓋：
+## 修改 Context
 
-```powershell
-$env:AIGMOS_LOCAL_MODEL="你的模型名稱"
-```
+預設範例位於 `gm_processor/sample_data/gm_context.json`。修改時必須保留所有 GMContext 必要欄位，且符合下列限制：
+
+- `context_version` 不可為空。
+- `current_hp` 不可大於 `max_hp`。
+- `turn_number` 不可小於 0。
+- `hidden_gm_facts` 不可同時列為 `known_clues`。
+- NPC 的 `hidden_facts` 不可同時列為 `known_facts`。
+
+完整 TurnInput 範例位於 `gm_processor/sample_data/turn_input.json`。
+
+## 不同世界範例
+
+`gm_processor/sample_data/gm_context_alt.json` 使用完全不同的科幻世界、角色、規則與當前事件。切換 Context 不需要修改 GM Processor 程式。
 
 ## 執行 Demo
 
-```bash
+預設 Context：
+
+```powershell
 python gm_processor/demo.py
 ```
 
-流程：
+替代 Context：
 
-1. 讀取 `gm_processor/sample_data/`。
-2. 顯示目前情境。
-3. 接受一行繁體中文玩家輸入。
-4. 呼叫 `process_turn`。
-5. 顯示玩家可見敘事、裁定結果與狀態更新。
-6. 執行一次後結束。
+```powershell
+python gm_processor/demo.py --context gm_context_alt.json
+```
+
+Demo 讀取一份 GM Context、接受一行繁體中文玩家輸入、呼叫 `process_turn()`、顯示固定 Turn Result，然後結束。
 
 ## 執行測試
 
-```bash
+```powershell
 python -m pytest gm_processor/tests
 ```
 
+## 舊 Sample Data
+
+以下分散式檔案已淘汰並保留作為 legacy 參考，不再是正式 Demo 輸入來源：
+
+- `rule_system.json`
+- `character.json`
+- `situation.json`
+- `world_state.json`
+
+## Ollama
+
+AI Provider 預設透過現有 `local_ai.py` 使用 Ollama。模型或服務無法使用時，GM Processor 會回傳合法 Turn Result，並將問題放入 `errors`，不會讓回合崩潰。
+
 ## 目前範圍
 
-- 只處理單一玩家回合。
-- 使用 Pydantic 驗證輸入與輸出。
-- 使用 Ollama 本機模型，不使用 OpenAI API。
-- 模型輸出不合法時，會嘗試解析 JSON；仍不合法時回傳安全錯誤結果。
-
-## 目前不包含
-
-- 完整 D&D 規則。
-- 完整戰鬥系統。
-- 長期記憶。
-- 完整戰役。
-- 多劇本切換。
-- 自我學習。
-- UI、App、資料庫、帳號或多人模式。
+- 僅支援單回合。
+- 不自動擲骰；外部系統可透過 `dice_result` 提供結果。
+- 不寫入 Context、世界或存檔。
+- 不包含完整規則、多回合、長期記憶、資料庫、UI 或 App。

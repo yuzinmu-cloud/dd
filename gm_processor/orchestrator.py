@@ -47,13 +47,13 @@ class TurnOrchestrator:
     def process(self, payload: Any) -> TurnResult:
         warnings: list[str] = []
         errors: list[str] = []
-        turn_input, new_warnings, new_errors = self.validator.validate(TurnInput, payload, "Turn Input")
+        turn_input, new_warnings, new_errors = self.validator.validate_turn_input(payload)
         warnings.extend(new_warnings)
         errors.extend(new_errors)
         if turn_input is None:
             return self._safe_result(warnings, errors)
 
-        context = self._build_context(turn_input)
+        context = turn_input.context
         try:
             interpretation, new_warnings, new_errors = self.interpreter.interpret(turn_input.player_input, context)
             warnings.extend(new_warnings)
@@ -117,17 +117,6 @@ class TurnOrchestrator:
         except Exception as error:  # Component failures must become a legal TurnResult.
             errors.append(f"GM Processor 發生未預期錯誤：{error}")
             return self._safe_result(warnings, errors, player_input=turn_input.player_input)
-
-    @staticmethod
-    def _build_context(turn_input: TurnInput) -> dict[str, Any]:
-        return {
-            "rule_context": turn_input.rule_system,
-            "character_context": turn_input.character,
-            "world_context": turn_input.world_state,
-            "adventure_context": turn_input.situation,
-            "history_context": {"recent_events": turn_input.recent_events},
-            "session_context": {},
-        }
 
     @staticmethod
     def _safe_result(

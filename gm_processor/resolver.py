@@ -4,11 +4,11 @@ from typing import Any
 
 try:
     from .ai_provider import AIProvider
-    from .schemas import ActionInterpretation, DiceResult, Resolution, Ruling, model_to_dict
+    from .schemas import ActionInterpretation, DiceResult, GMContext, Resolution, Ruling, model_to_dict
     from .validator import Validator
 except ImportError:
     from ai_provider import AIProvider
-    from schemas import ActionInterpretation, DiceResult, Resolution, Ruling, model_to_dict
+    from schemas import ActionInterpretation, DiceResult, GMContext, Resolution, Ruling, model_to_dict
     from validator import Validator
 
 
@@ -22,7 +22,7 @@ class Resolver:
         interpretation: ActionInterpretation,
         ruling: Ruling,
         dice_result: DiceResult,
-        context: dict[str, Any],
+        context: GMContext,
     ) -> tuple[Resolution | None, list[str], list[str]]:
         if dice_result.status == "pending":
             return Resolution(
@@ -37,7 +37,7 @@ class Resolver:
                 "interpretation": model_to_dict(interpretation),
                 "ruling": model_to_dict(ruling),
                 "dice_result": model_to_dict(dice_result),
-                "gm_context": context,
+                "gm_context": model_to_dict(context),
             },
             Resolution,
         )

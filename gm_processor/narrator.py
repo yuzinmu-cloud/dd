@@ -4,11 +4,11 @@ from typing import Any
 
 try:
     from .ai_provider import AIProvider
-    from .schemas import ActionInterpretation, NarrationResult, Resolution, Ruling, StateUpdate, model_to_dict
+    from .schemas import ActionInterpretation, GMContext, NarrationResult, Resolution, Ruling, StateUpdate, model_to_dict
     from .validator import Validator
 except ImportError:
     from ai_provider import AIProvider
-    from schemas import ActionInterpretation, NarrationResult, Resolution, Ruling, StateUpdate, model_to_dict
+    from schemas import ActionInterpretation, GMContext, NarrationResult, Resolution, Ruling, StateUpdate, model_to_dict
     from validator import Validator
 
 
@@ -38,7 +38,7 @@ class Narrator:
         ruling: Ruling,
         resolution: Resolution,
         state_update: StateUpdate,
-        context: dict[str, Any],
+        context: GMContext,
     ) -> tuple[NarrationResult | None, list[str], list[str]]:
         payload, error = self.provider.generate(
             "以繁體中文描述已確定結果。不得重新裁定、洩漏隱藏資訊、控制玩家思想情緒或下一步，也不得新增重要事實。",
@@ -47,7 +47,7 @@ class Narrator:
                 "ruling": model_to_dict(ruling),
                 "resolution": model_to_dict(resolution),
                 "state_update": model_to_dict(state_update),
-                "public_context": public_context(context),
+                "public_context": public_context(model_to_dict(context)),
             },
             NarrationResult,
         )

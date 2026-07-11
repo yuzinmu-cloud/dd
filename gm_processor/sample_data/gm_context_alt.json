@@ -1,0 +1,71 @@
+{
+  "context_version": "1.0",
+  "rules": {
+    "system_name": "星際前哨簡化規則",
+    "system_version": "1.0",
+    "available_checks": ["systems", "science", "presence"],
+    "difficulty_rules": {"routine": 6, "risky": 11, "critical": 17},
+    "special_rules": ["真空環境中的外部行動需要合適裝備。"],
+    "house_rules": ["無壓力的例行診斷不需檢定。"]
+  },
+  "character": {
+    "character_id": "pc-yao-xing",
+    "name": "姚星",
+    "race": null,
+    "character_class": "軌道站工程師",
+    "level": 2,
+    "attributes": {"systems": 3, "science": 2, "presence": 0},
+    "skills": {"reactor": 2, "sensors": 3},
+    "inventory": ["診斷平板", "絕緣工具組"],
+    "equipment": ["站內維修服"],
+    "conditions": ["輕微疲勞"],
+    "current_hp": 7,
+    "max_hp": 8
+  },
+  "world": {
+    "world_name": "赫利俄斯航域",
+    "current_region": "赤環軌道",
+    "current_location": "研究站曙光七號",
+    "time": "站內時間 03:40",
+    "weather": null,
+    "known_world_facts": ["研究站繞行一顆氣態巨行星。", "外部通訊受到磁暴干擾。"],
+    "active_world_states": {"communications": "unstable", "gravity": "nominal"}
+  },
+  "adventure": {
+    "adventure_id": "adv-silent-array",
+    "title": "沉默的感測陣列",
+    "premise": "外環感測陣列突然停止回傳資料。",
+    "current_situation": "主控室收到陣列離線警報，但其他系統運作正常。",
+    "relevant_npcs": [
+      {
+        "npc_id": "npc-ivo",
+        "name": "伊沃",
+        "role": "值班科學官",
+        "description": "說話簡短、專注數據的科學官。",
+        "known_facts": ["離線前出現一次不明能量峰值。"],
+        "hidden_facts": ["他延後回報了較早的一次微弱異常。"],
+        "goals": ["恢復感測陣列", "確認能量峰值來源"],
+        "attitude": 0,
+        "current_state": {"location": "主控室", "status": "active"}
+      }
+    ],
+    "known_clues": ["陣列離線前記錄到能量峰值。"],
+    "active_objectives": ["診斷感測陣列。"],
+    "hidden_gm_facts": ["故障源位於備援資料匯流排。"],
+    "active_events": ["下一次磁暴波峰將在兩小時後抵達。"]
+  },
+  "history": {
+    "recent_events": ["姚星被召到主控室。", "外環感測陣列轉為離線。"],
+    "player_decisions": [],
+    "unresolved_consequences": ["研究站暫時失去外環監測能力。"],
+    "world_changes": ["磁暴使長程通訊不穩定。"],
+    "npc_memories": {"npc-ivo": ["姚星曾快速修復冷卻系統。"]}
+  },
+  "session": {
+    "session_id": "session-orbit-001",
+    "turn_number": 0,
+    "recent_conversation": [{"speaker": "伊沃", "text": "陣列剛剛完全離線了。"}],
+    "initiative": null,
+    "current_phase": "diagnosis"
+  }
+}

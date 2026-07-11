@@ -1,0 +1,36 @@
+{
+  "player_input": "我用診斷方式調查後門旁的濕泥腳印。",
+  "context": {
+    "context_version": "1.0",
+    "rules": {
+      "system_name": "AIGMOS 簡化調查規則",
+      "system_version": "1.0",
+      "available_checks": ["body", "mind", "social"],
+      "difficulty_rules": {"easy": 8, "normal": 12, "hard": 16, "extreme": 20},
+      "special_rules": ["無風險且結果明確的行動不需檢定。"],
+      "house_rules": []
+    },
+    "character": {
+      "character_id": "pc-lin-wu", "name": "林霧", "race": "人類", "character_class": "旅行調查員", "level": 1,
+      "attributes": {"body": 1, "mind": 2, "social": 1}, "skills": {"investigation": 2},
+      "inventory": ["油燈", "筆記本"], "equipment": ["短杖"], "conditions": [], "current_hp": 10, "max_hp": 10
+    },
+    "world": {
+      "world_name": "霧河諸境", "current_region": "南岸商路", "current_location": "河岸驛站", "time": "雨後清晨", "weather": "陰",
+      "known_world_facts": ["河水上漲。"], "active_world_states": {"river_level": "high"}
+    },
+    "adventure": {
+      "adventure_id": "adv-missing-cargo", "title": "失蹤的藍漆貨箱", "premise": "一只貨箱在暴雨夜失蹤。", "current_situation": "後門旁留有濕泥腳印。",
+      "relevant_npcs": [], "known_clues": ["後門旁有濕泥腳印。"], "active_objectives": ["找出貨箱去向。"],
+      "hidden_gm_facts": ["腳印由搬運貨箱的人留下。"], "active_events": []
+    },
+    "history": {
+      "recent_events": ["玩家剛抵達河岸驛站。"], "player_decisions": [], "unresolved_consequences": ["貨箱仍然失蹤。"],
+      "world_changes": ["暴雨使河水上漲。"], "npc_memories": {}
+    },
+    "session": {
+      "session_id": "session-river-001", "turn_number": 0, "recent_conversation": [], "initiative": null, "current_phase": "investigation"
+    }
+  },
+  "dice_result": null
+}

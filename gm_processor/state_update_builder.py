@@ -3,13 +3,13 @@ from __future__ import annotations
 from typing import Any
 
 try:
-    from .schemas import Resolution, StateUpdate, validate_model
+    from .schemas import GMContext, Resolution, StateUpdate, validate_model
 except ImportError:
-    from schemas import Resolution, StateUpdate, validate_model
+    from schemas import GMContext, Resolution, StateUpdate, validate_model
 
 
 class StateUpdateBuilder:
-    def build(self, resolution: Resolution, _context: dict[str, Any]) -> tuple[StateUpdate, list[str], list[str]]:
+    def build(self, resolution: Resolution, _context: GMContext) -> tuple[StateUpdate, list[str], list[str]]:
         allowed = set(StateUpdate.model_fields if hasattr(StateUpdate, "model_fields") else StateUpdate.__fields__)
         proposed = resolution.proposed_updates
         unknown = sorted(set(proposed) - allowed)

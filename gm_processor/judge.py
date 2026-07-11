@@ -4,11 +4,11 @@ from typing import Any
 
 try:
     from .ai_provider import AIProvider
-    from .schemas import ActionInterpretation, DiceRequest, Ruling, StrictModel, model_to_dict
+    from .schemas import ActionInterpretation, DiceRequest, GMContext, Ruling, StrictModel, model_to_dict
     from .validator import Validator
 except ImportError:
     from ai_provider import AIProvider
-    from schemas import ActionInterpretation, DiceRequest, Ruling, StrictModel, model_to_dict
+    from schemas import ActionInterpretation, DiceRequest, GMContext, Ruling, StrictModel, model_to_dict
     from validator import Validator
 
 
@@ -22,14 +22,13 @@ class Judge:
         self.provider = provider
         self.validator = validator
 
-    def judge(self, interpretation: ActionInterpretation, context: dict[str, Any]) -> tuple[Ruling | None, DiceRequest | None, list[str], list[str]]:
+    def judge(self, interpretation: ActionInterpretation, context: GMContext) -> tuple[Ruling | None, DiceRequest | None, list[str], list[str]]:
         warnings: list[str] = []
-        rule_context = context.get("rule_context") or context.get("rule_system")
-        if not rule_context:
+        if not context.rules.available_checks or not context.rules.difficulty_rules:
             warnings.append("Rule Context 資訊不足；Judge 不會自行發明規則。")
         payload, error = self.provider.generate(
             "依 Rule Context 裁定行動，輸出 ruling 與 dice_request；不要擲骰、更新狀態或敘事。資訊不足時不得發明規則。",
-            {"interpretation": model_to_dict(interpretation), "gm_context": context},
+            {"interpretation": model_to_dict(interpretation), "gm_context": model_to_dict(context)},
             JudgeOutput,
         )
         if error:

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import argparse
 from pathlib import Path
 
 try:
@@ -14,20 +15,23 @@ SAMPLE_DIR = BASE_DIR / "sample_data"
 
 
 def main() -> None:
-    turn_base = load_sample_data()
-    situation = turn_base["situation"]
+    args = parse_args()
+    context = read_context(args.context)
 
     print("GM Processor Demo")
     print("=================")
-    print(f"目前地點：{situation.get('current_location', '未指定')}")
-    print(f"當前衝突：{situation.get('current_conflict', '未指定')}")
+    print(f"世界名稱：{context['world']['world_name']}")
+    print(f"冒險名稱：{context['adventure']['title']}")
+    print(f"目前地點：{context['world']['current_location']}")
+    print(f"當前情境：{context['adventure']['current_situation']}")
+    print(f"玩家角色：{context['character']['name']}")
     print()
 
     player_input = input("你要怎麼做？ > ").strip()
     turn_input = {
         "player_input": player_input,
-        **turn_base,
-        "recent_events": turn_base.get("world_state", {}).get("recent_events", []),
+        "context": context,
+        "dice_result": None,
     }
 
     result = process_turn(turn_input)
@@ -54,17 +58,17 @@ def main() -> None:
             print(json.dumps(value, ensure_ascii=False, indent=2))
 
 
-def load_sample_data() -> dict:
-    return {
-        "rule_system": read_json("rule_system.json"),
-        "character": read_json("character.json"),
-        "situation": read_json("situation.json"),
-        "world_state": read_json("world_state.json"),
-    }
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Run one GM Processor turn.")
+    parser.add_argument("--context", default="gm_context.json", help="Context filename in sample_data/.")
+    return parser.parse_args()
 
 
-def read_json(filename: str) -> dict:
-    return json.loads((SAMPLE_DIR / filename).read_text(encoding="utf-8"))
+def read_context(filename: str) -> dict:
+    path = (SAMPLE_DIR / filename).resolve()
+    if path.parent != SAMPLE_DIR.resolve():
+        raise ValueError("Context 必須位於 gm_processor/sample_data/。")
+    return json.loads(path.read_text(encoding="utf-8"))
 
 
 if __name__ == "__main__":

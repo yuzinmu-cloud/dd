@@ -1,0 +1,71 @@
+{
+  "context_version": "1.0",
+  "rules": {
+    "system_name": "AIGMOS 簡化調查規則",
+    "system_version": "1.0",
+    "available_checks": ["body", "mind", "social"],
+    "difficulty_rules": {"easy": 8, "normal": 12, "hard": 16, "extreme": 20},
+    "special_rules": ["無風險且結果明確的行動不需檢定。", "資訊不足時不得自行發明規則。"],
+    "house_rules": []
+  },
+  "character": {
+    "character_id": "pc-lin-wu",
+    "name": "林霧",
+    "race": "人類",
+    "character_class": "旅行調查員",
+    "level": 1,
+    "attributes": {"body": 1, "mind": 2, "social": 1},
+    "skills": {"investigation": 2, "survival": 1},
+    "inventory": ["油燈", "筆記本"],
+    "equipment": ["短杖"],
+    "conditions": [],
+    "current_hp": 10,
+    "max_hp": 10
+  },
+  "world": {
+    "world_name": "霧河諸境",
+    "current_region": "南岸商路",
+    "current_location": "河岸驛站",
+    "time": "雨後清晨",
+    "weather": "陰，暴雨剛停",
+    "known_world_facts": ["河水上漲。", "附近沒有城鎮守衛。"],
+    "active_world_states": {"river_level": "high", "dock_surface": "slippery"}
+  },
+  "adventure": {
+    "adventure_id": "adv-missing-cargo",
+    "title": "失蹤的藍漆貨箱",
+    "premise": "一只貨箱在暴雨夜失蹤。",
+    "current_situation": "後門旁留有濕泥腳印，驛站看守請求協助。",
+    "relevant_npcs": [
+      {
+        "npc_id": "npc-a-cen",
+        "name": "阿岑",
+        "role": "驛站看守",
+        "description": "神情焦慮的中年看守。",
+        "known_facts": ["貨箱最後在後門旁被看見。"],
+        "hidden_facts": ["他隱瞞午夜曾短暫離開櫃台。"],
+        "goals": ["找回貨箱", "避免驛站名聲受損"],
+        "attitude": "緊張但願意合作",
+        "current_state": {"location": "驛站櫃台", "mood": "焦慮"}
+      }
+    ],
+    "known_clues": ["後門旁有濕泥腳印。"],
+    "active_objectives": ["找出貨箱去向。"],
+    "hidden_gm_facts": ["腳印由搬運貨箱的人留下。"],
+    "active_events": ["上漲的河水正在沖淡碼頭痕跡。"]
+  },
+  "history": {
+    "recent_events": ["玩家剛抵達河岸驛站。", "阿岑請玩家協助。"],
+    "player_decisions": [],
+    "unresolved_consequences": ["貨箱仍然失蹤。"],
+    "world_changes": ["暴雨使河水上漲。"],
+    "npc_memories": {"npc-a-cen": ["林霧答應先查看現場。"]}
+  },
+  "session": {
+    "session_id": "session-river-001",
+    "turn_number": 0,
+    "recent_conversation": [{"speaker": "阿岑", "text": "請幫我找回那只貨箱。"}],
+    "initiative": null,
+    "current_phase": "investigation"
+  }
+}
