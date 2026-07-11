@@ -4,16 +4,16 @@ Status: Draft
 
 ## Purpose
 
-定義 GM Processor 內部元件、各自責任、輸入輸出與權限邊界。
+定義 GM Processor 的所有元件。
 
-本文件必須依照：
+本文件依據：
 
-- AIGMOS-101 GM Context Specification v1.0
-- AIGMOS-102 GM Turn Specification v1.0
+- AIGMOS-101_GM_Context_v1.0
+- AIGMOS-102_GM_Turn_v1.0
 
 ## Component Overview
 
-GM Processor 包含以下元件：
+GM Processor 固定包含九個元件：
 
 1. Turn Orchestrator
 2. Interpreter
@@ -27,25 +27,29 @@ GM Processor 包含以下元件：
 
 ## 1. Turn Orchestrator
 
-責任：
+### Purpose
+
+協調 GM Processor 每回合的固定流程。
+
+### Responsibilities
 
 - 接收 Player Input 與 GM Context。
-- 依固定順序呼叫所有元件。
-- 收集每個元件輸出。
-- 組成最終 Turn Result。
-- 處理錯誤與安全降級。
+- 依固定順序協調各元件。
+- 收集各元件輸出。
+- 組成 Turn Result。
+- 處理 Warnings 與 Errors。
 
-輸入：
+### Input
 
 - Player Input
 - GM Context
 - Optional Dice Result
 
-輸出：
+### Output
 
 - Turn Result
 
-不得：
+### Cannot Do
 
 - 自行解讀玩家行動。
 - 自行裁定規則。
@@ -54,21 +58,26 @@ GM Processor 包含以下元件：
 
 ## 2. Interpreter
 
-責任：
+### Purpose
 
-- 理解玩家輸入。
+理解玩家真正想執行的行動。
+
+### Responsibilities
+
+- 分析 Player Input。
+- 參考 GM Context 理解行動背景。
 - 產生 Action Interpretation。
 
-輸入：
+### Input
 
 - Player Input
 - GM Context
 
-輸出：
+### Output
 
 - Action Interpretation
 
-不得：
+### Cannot Do
 
 - 判定成功或失敗。
 - 修改任何 Context。
@@ -76,24 +85,28 @@ GM Processor 包含以下元件：
 
 ## 3. Judge
 
-責任：
+### Purpose
 
-- 依 Rule Context 與目前狀態進行規則裁定。
-- 判斷行動是否可能。
+依照規則與目前狀態完成行動裁定。
+
+### Responsibilities
+
+- 判斷行動是否合法與是否可能。
 - 判斷是否需要檢定。
 - 指定檢定類型與難度。
+- 產生 Ruling 與 Dice Request。
 
-輸入：
+### Input
 
 - Action Interpretation
 - GM Context
 
-輸出：
+### Output
 
 - Ruling
 - Dice Request
 
-不得：
+### Cannot Do
 
 - 擲骰。
 - 修改狀態。
@@ -101,45 +114,56 @@ GM Processor 包含以下元件：
 
 ## 4. Dice Interface
 
-責任：
+### Purpose
 
-- 向外部骰子系統提出擲骰需求。
-- 接收骰子結果。
-- 驗證骰子結果格式。
+提供 GM Processor 與骰子結果之間的固定資料交換邊界。
 
-輸入：
+### Responsibilities
+
+- 接收 Dice Request。
+- 接收 Optional External Dice Result。
+- 驗證骰子結果。
+- 回傳 Validated Dice Result。
+
+### Input
 
 - Dice Request
 - Optional External Dice Result
 
-輸出：
+### Output
 
 - Validated Dice Result
 
-不得：
+### Cannot Do
 
 - 修改骰子結果。
-- 裁定敘事結果。
-- 修改世界狀態。
+- 裁定行動結果。
+- 修改世界或角色狀態。
 
 ## 5. Resolver
 
-責任：
+### Purpose
 
-- 根據 Action Interpretation、Ruling 與 Dice Result，決定實際發生的結果。
+根據解讀、裁定與骰子結果決定實際結果。
 
-輸入：
+### Responsibilities
+
+- 整合 Action Interpretation、Ruling 與 Dice Result。
+- 參考 GM Context。
+- 產生 Resolution。
+
+### Input
 
 - Action Interpretation
 - Ruling
 - Dice Result
 - GM Context
 
-輸出：
+### Output
 
 - Resolution
 
-不得：
+### Cannot Do
 
 - 直接修改 Context。
 - 產生玩家可見敘事。
@@ -147,16 +171,22 @@ GM Processor 包含以下元件：
 
 ## 6. State Update Builder
 
-責任：
+### Purpose
 
-- 將 Resolution 轉換成結構化 State Update。
+將 Resolution 轉換成固定的狀態更新資料。
 
-輸入：
+### Responsibilities
+
+- 根據 Resolution 建立 State Update。
+- 將變更依所屬狀態分類。
+- 確保更新內容不超出 Resolution。
+
+### Input
 
 - Resolution
 - GM Context
 
-輸出：
+### Output
 
 - State Update
 
@@ -171,7 +201,7 @@ State Update 可包含：
 - Event Changes
 - Session Changes
 
-不得：
+### Cannot Do
 
 - 直接寫入外部系統。
 - 新增 Resolution 未決定的結果。
@@ -179,11 +209,17 @@ State Update 可包含：
 
 ## 7. Narrator
 
-責任：
+### Purpose
 
-- 將已完成的裁定與結果轉換成玩家可見敘事。
+將已完成的裁定與結果轉換成玩家可見敘事。
 
-輸入：
+### Responsibilities
+
+- 根據 Resolution 與 State Update 描述結果。
+- 確保 Narration 符合既有裁定。
+- 使用繁體中文產生 Narration。
+
+### Input
 
 - Action Interpretation
 - Ruling
@@ -191,11 +227,11 @@ State Update 可包含：
 - State Update
 - GM Context
 
-輸出：
+### Output
 
 - Narration
 
-不得：
+### Cannot Do
 
 - 修改 State Update。
 - 重新裁定規則。
@@ -204,119 +240,129 @@ State Update 可包含：
 
 ## 8. Validator
 
-責任：
+### Purpose
 
-- 驗證各元件輸入與輸出格式。
+確保各元件交換的資料合法且完整。
+
+### Responsibilities
+
+- 驗證各元件的 Input 與 Output。
 - 阻止不合法資料進入下一步。
-- 產生 Warnings 與 Errors。
+- 產生 Validation Result、Warnings 與 Errors。
 
-輸入：
+### Input
 
-- 各元件輸入與輸出資料
+- Component Input
+- Component Output
 
-輸出：
+### Output
 
 - Validation Result
 - Warnings
 - Errors
 
-不得：
+### Cannot Do
 
 - 自行修正規則結果。
 - 自行新增世界內容。
+- 略過驗證失敗。
 
 ## 9. AI Provider
 
-責任：
+### Purpose
 
-- 提供本機或外部語言模型存取介面。
-- 隔離特定模型實作。
+提供可替換的 AI 能力邊界，隔離特定模型。
 
-輸入：
+### Responsibilities
 
-- Structured Prompt
-- Output Schema
+- 接收標準化 Model Request。
+- 將模型回應轉換成 Raw Model Output。
+- 回報 Provider Error。
+- 維持模型替換能力。
+
+### Input
+
+- Model Request
 - Model Configuration
 
-輸出：
+### Output
 
 - Raw Model Output
 - Provider Error
 
-不得：
+### Cannot Do
 
 - 保存遊戲狀態。
 - 直接修改 GM Context。
-- 綁定特定劇本或規則。
+- 綁定任何 Adventure。
+- 綁定任何 Rule System。
 
-## Required Component Order
+## Component Flow
 
-固定順序：
+固定流程：
 
 ```text
 Turn Orchestrator
-→ Interpreter
-→ Validator
-→ Judge
-→ Validator
-→ Dice Interface
-→ Resolver
-→ Validator
-→ State Update Builder
-→ Validator
-→ Narrator
-→ Validator
-→ Turn Result
+↓
+Interpreter
+↓
+Validator
+↓
+Judge
+↓
+Validator
+↓
+Dice Interface
+↓
+Resolver
+↓
+Validator
+↓
+State Update Builder
+↓
+Validator
+↓
+Narrator
+↓
+Validator
+↓
+Turn Result
 ```
 
 ## Component Independence
 
-每個元件必須：
+每個元件不得：
 
-- 有明確輸入。
-- 有明確輸出。
-- 可以單獨測試。
-- 不直接存取其他元件內部資料。
-- 不依賴特定劇本名稱。
-- 不依賴特定規則系統名稱。
-- 不依賴特定 AI 模型。
+- 修改其他元件資料。
+- 直接存取外部系統。
+- 保存遊戲狀態。
+- 綁定任何 Adventure。
+- 綁定任何 Rule System。
 
-## AI Usage Policy
-
-本文件不強制指定哪些元件一定使用 AI。
-
-每個元件可以使用：
-
-- Deterministic Rules
-- Local LLM
-- External LLM
-- Hybrid Method
-
-但對外輸入輸出契約不得改變。
-
-## Non-Goals
-
-本文件不定義：
-
-- Python 類別。
-- JSON Schema。
-- Prompt 內容。
-- 特定模型。
-- 完整 D&D 規則。
-- Adventure System。
-- World System。
-- UI。
-- App。
-- 資料庫。
+元件之間只能透過各自定義的 Input 與 Output 交換資料。
 
 ## Acceptance Criteria
 
-文件完成後必須：
+GM Processor 必須可以替換以下項目，而不用修改其他元件：
 
-- 清楚定義 9 個元件。
-- 每個元件都有責任、輸入、輸出與禁止事項。
-- 元件順序符合 AIGMOS-102。
+- AI
+- Rule
+- Adventure
+- World
+
+並確認：
+
+- 固定包含九個元件。
+- 每個元件都有 Purpose、Responsibilities、Input、Output 與 Cannot Do。
+- Component Flow 符合 AIGMOS-102_GM_Turn_v1.0。
 - 所有元件只透過固定資料交換。
-- GM Processor 不依賴特定劇本、規則或模型。
-- 文件不包含實作程式碼。
-- 不修改任何既有程式。
+- GM Processor 不依賴特定 Adventure、Rule System、World 或 AI。
+
+## Restrictions
+
+不得加入：
+
+- Python
+- JSON
+- Prompt
+- Implementation
