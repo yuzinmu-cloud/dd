@@ -164,6 +164,9 @@ class NarrationResult(StrictModel):
     narration: str
 
 
+SessionStatus = Literal["active", "completed", "failed", "aborted"]
+
+
 class TurnResult(StrictModel):
     interpretation: ActionInterpretation
     ruling: Ruling
@@ -171,6 +174,16 @@ class TurnResult(StrictModel):
     resolution: Resolution
     state_update: StateUpdate
     narration: str
+    warnings: list[str]
+    errors: list[str]
+    session_status: SessionStatus = "active"
+
+
+class SessionResult(StrictModel):
+    final_context: GMContext
+    turns: list[TurnResult]
+    turn_count: int
+    session_status: SessionStatus
     warnings: list[str]
     errors: list[str]
 
