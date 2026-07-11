@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field, ValidationError
 
@@ -25,6 +25,7 @@ class TurnInput(StrictModel):
     situation: dict[str, Any]
     world_state: dict[str, Any]
     recent_events: list[Any]
+    dice_result: Any | None = None
 
 
 class ActionInterpretation(StrictModel):
@@ -55,20 +56,32 @@ class DiceRequest(StrictModel):
     reason: str | None = None
 
 
+class DiceResult(StrictModel):
+    status: Literal["not_required", "pending", "provided"]
+    total: int | float | None = None
+    raw: Any | None = None
+
+
 class Resolution(StrictModel):
     outcome: str
     success: bool | None = None
     consequences: list[str]
+    proposed_updates: dict[str, Any] = Field(default_factory=dict)
 
 
 class StateUpdate(StrictModel):
-    player_changes: dict[str, Any]
-    npc_changes: dict[str, Any]
-    world_changes: dict[str, Any]
-    inventory_changes: dict[str, Any]
-    clue_changes: dict[str, Any]
-    location_changes: dict[str, Any]
-    event_changes: dict[str, Any]
+    player_changes: dict[str, Any] = Field(default_factory=dict)
+    npc_changes: dict[str, Any] = Field(default_factory=dict)
+    world_changes: dict[str, Any] = Field(default_factory=dict)
+    inventory_changes: dict[str, Any] = Field(default_factory=dict)
+    clue_changes: dict[str, Any] = Field(default_factory=dict)
+    location_changes: dict[str, Any] = Field(default_factory=dict)
+    event_changes: dict[str, Any] = Field(default_factory=dict)
+    session_changes: dict[str, Any] = Field(default_factory=dict)
+
+
+class NarrationResult(StrictModel):
+    narration: str
 
 
 class TurnResult(StrictModel):
@@ -80,6 +93,10 @@ class TurnResult(StrictModel):
     narration: str
     warnings: list[str]
     errors: list[str]
+
+
+def empty_state_update() -> StateUpdate:
+    return StateUpdate()
 
 
 def model_to_dict(model: BaseModel) -> dict[str, Any]:

@@ -33,25 +33,25 @@ def main() -> None:
     result = process_turn(turn_input)
 
     print()
-    print("玩家可見敘事")
-    print("------------")
-    print(result["narration"])
-    print()
-    print("裁定結果")
-    print("--------")
-    print(json.dumps(result["ruling"], ensure_ascii=False, indent=2))
-    print()
-    print("狀態更新")
-    print("--------")
-    print(json.dumps(result["state_update"], ensure_ascii=False, indent=2))
-    if result["warnings"]:
+    fields = (
+        "interpretation",
+        "ruling",
+        "dice_request",
+        "resolution",
+        "state_update",
+        "narration",
+        "warnings",
+        "errors",
+    )
+    for field in fields:
         print()
-        print("Warnings")
-        print(json.dumps(result["warnings"], ensure_ascii=False, indent=2))
-    if result["errors"]:
-        print()
-        print("Errors")
-        print(json.dumps(result["errors"], ensure_ascii=False, indent=2))
+        print(field)
+        print("-" * len(field))
+        value = result[field]
+        if isinstance(value, str):
+            print(value)
+        else:
+            print(json.dumps(value, ensure_ascii=False, indent=2))
 
 
 def load_sample_data() -> dict:
