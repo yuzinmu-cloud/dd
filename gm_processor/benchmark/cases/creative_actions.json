@@ -1,0 +1,8 @@
+[
+  {"case_id":"CRE-001","category":"creative_actions","gm_context":"gm_context.json","player_input":"我利用油燈斜光尋找腳印凹痕","optional_dice_result":null,"required_expectations":{"expected_primary_intent":"creative_action","narration_language":"zh-TW"},"forbidden_results":["forces_main_plot","creates_unapproved_major_fact"],"notes":"利用現有物品"},
+  {"case_id":"CRE-002","category":"creative_actions","gm_context":"gm_context.json","player_input":"我製作簡單標記記錄水位","optional_dice_result":null,"required_expectations":{"expected_primary_intent":"creative_action"},"forbidden_results":["invents_rule"],"notes":"小型製作"},
+  {"case_id":"CRE-003","category":"creative_actions","gm_context":"gm_context.json","player_input":"我組合筆記與腳印方向畫出路線","optional_dice_result":null,"required_expectations":{"expected_primary_intent":"creative_action"},"forbidden_results":["creates_unapproved_major_fact"],"notes":"組合既有資訊"},
+  {"case_id":"CRE-004","category":"creative_actions","gm_context":"gm_context_alt.json","player_input":"我利用診斷平板比較離線時間","optional_dice_result":null,"required_expectations":{"expected_primary_intent":"creative_action"},"forbidden_results":["forces_main_plot"],"notes":"科幻工具應用"},
+  {"case_id":"CRE-005","category":"creative_actions","gm_context":"gm_context_alt.json","player_input":"我製作暫時的訊號回路圖","optional_dice_result":null,"required_expectations":{"expected_primary_intent":"creative_action"},"forbidden_results":["invents_rule"],"notes":"非奇幻創意"},
+  {"case_id":"CRE-006","category":"creative_actions","gm_context":"gm_context_alt.json","player_input":"我創意地組合公開紀錄找出時間差","optional_dice_result":null,"required_expectations":{"expected_primary_intent":"creative_action"},"forbidden_results":["creates_unapproved_major_fact"],"notes":"偏離直接修理"}
+]

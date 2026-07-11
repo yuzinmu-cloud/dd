@@ -26,4 +26,6 @@ class Interpreter:
         if error:
             return None, [], [f"Interpreter：{error}"]
         result, warnings, errors = self.validator.validate(ActionInterpretation, payload, "Action Interpretation")
+        if result is not None and result.ambiguity:
+            warnings.append(f"玩家行動存在歧義：{result.ambiguity}")
         return result, warnings, errors
