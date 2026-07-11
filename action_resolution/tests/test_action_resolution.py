@@ -106,6 +106,14 @@ def test_pending_attack_does_not_propose_state_change():
     assert result.status=="pending_attack_roll" and result.state_change_proposal=={} and result.success is None
 
 
+def test_successful_attack_enters_pending_damage_without_state_change():
+    engine=ActionResolutionEngine(PACK);action=classify(interpretation("attack",target="Target"),context())
+    result=engine.resolve_action(engine.build_rule_request(action,context()),context(),{"total":20})
+    assert result.status=="pending_damage_roll"
+    assert result.pending_dice and result.state_change_proposal=={}
+    assert result.rule_result.values["damage_request"] is not None
+
+
 def test_rule_pack_swap_keeps_public_interface(tmp_path):
     pack=tmp_path/"pack";pack.mkdir();(pack/"metadata.json").write_text('{"rule_system_id":"other","supported_action_categories":["movement"]}',encoding="utf-8")
     engine=ActionResolutionEngine(PACK)

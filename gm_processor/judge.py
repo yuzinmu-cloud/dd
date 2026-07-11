@@ -55,9 +55,9 @@ class Judge:
         )
         dice_request = DiceRequest(
             needed=action_result.pending_dice,
-            dice="d20" if action_result.pending_dice else None,
+            dice="damage" if action_result.status == "pending_damage_roll" else "d20" if action_result.pending_dice else None,
             modifier_source=request.rule_module if action_result.pending_dice else None,
             difficulty=ruling.difficulty,
-            reason="Deterministic Rule Engine requires an external roll." if action_result.pending_dice else None,
+            reason="Deterministic Rule Engine requires a damage roll." if action_result.status == "pending_damage_roll" else "Deterministic Rule Engine requires an external roll." if action_result.pending_dice else None,
         )
         return ruling, dice_request, action_result, warnings, errors

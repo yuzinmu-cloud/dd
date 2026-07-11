@@ -61,12 +61,20 @@ class ActionResolutionEngine:
             "unsupported": "unsupported", "failed_validation": "failed_validation", "resolved": "resolved",
         }
         status = status_map[rule_result.status]
+        if (
+            routed == "attack"
+            and rule_result.status == "resolved"
+            and rule_result.success is True
+            and rule_result.values.get("damage_request")
+        ):
+            status = "pending_damage_roll"
         return ActionResolutionResult(
             standard_action=action, feasibility=feasibility, routed_rule=routed, rule_request=request,
-            rule_result=rule_result, pending_input=rule_result.pending_input, pending_dice=rule_result.pending_dice,
+            rule_result=rule_result, pending_input=rule_result.pending_input,
+            pending_dice=rule_result.pending_dice or status == "pending_damage_roll",
             status=status, success=rule_result.success,
-            outcome="Rule result resolved." if status == "resolved" else "Additional rule input is required.",
-            state_change_proposal=rule_result.state_change_proposal,
+            outcome="Rule result resolved." if status == "resolved" else "Damage roll is required." if status == "pending_damage_roll" else "Additional rule input is required.",
+            state_change_proposal={} if status == "pending_damage_roll" else rule_result.state_change_proposal,
             warnings=rule_result.warnings, errors=rule_result.errors,
         )
 
