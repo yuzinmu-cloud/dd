@@ -46,18 +46,23 @@ def main() -> None:
             print(event["message"])
         elif event_type == "turn_result":
             result = event["result"]
-            print("\nNarration")
-            print(result["narration"])
-            print("\nDice Request")
-            print(json.dumps(result["dice_request"], ensure_ascii=False, indent=2))
+            print("\nInterpretation")
+            print(json.dumps(result["interpretation"], ensure_ascii=False, indent=2))
             print("\nRuling")
             print(json.dumps(result["ruling"], ensure_ascii=False, indent=2))
+            print("\nDice Request")
+            print(json.dumps(result["dice_request"], ensure_ascii=False, indent=2))
+            print("\nResolution")
+            print(json.dumps(result["resolution"], ensure_ascii=False, indent=2))
             print("\nState Update")
             print(json.dumps(result["state_update"], ensure_ascii=False, indent=2))
-            if result["warnings"]:
-                print("Warnings:", json.dumps(result["warnings"], ensure_ascii=False))
-            if result["errors"]:
-                print("Errors:", json.dumps(result["errors"], ensure_ascii=False))
+            print("\nNarration")
+            print(result["narration"])
+            if event.get("pending"):
+                print("\nWarnings")
+                print(json.dumps(result["warnings"], ensure_ascii=False, indent=2))
+                print("\nErrors")
+                print(json.dumps(result["errors"], ensure_ascii=False, indent=2))
             if args.log:
                 error = write_turn_log(BASE_DIR / "logs", event)
                 if error:
@@ -68,10 +73,15 @@ def main() -> None:
             print(f"回合數：{updated['session']['turn_number']}")
             print(f"地點：{updated['world']['current_location']}")
             print(f"HP：{updated['character']['current_hp']}/{updated['character']['max_hp']}")
-            print("新線索：", updated["adventure"]["known_clues"])
+            print("本回合新增線索：", event["applied_diff"]["added_clues"])
             print("活躍事件：", updated["adventure"]["active_events"])
             if event["apply_errors"]:
                 print("State Update Errors:", event["apply_errors"])
+            result = event["turn_result"]
+            print("\nWarnings")
+            print(json.dumps(result["warnings"], ensure_ascii=False, indent=2))
+            print("\nErrors")
+            print(json.dumps(result["errors"], ensure_ascii=False, indent=2))
 
     result = run_session(context, input_provider, output_handler)
     print("\nSession 摘要")

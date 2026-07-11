@@ -10,6 +10,8 @@ except ImportError:
 
 class StateUpdateBuilder:
     def build(self, resolution: Resolution, _context: GMContext) -> tuple[StateUpdate, list[str], list[str]]:
+        if resolution.success is None and resolution.proposed_updates:
+            return StateUpdate(), [], ["Pending Resolution 不得包含或套用 State Update。"]
         allowed = set(StateUpdate.model_fields if hasattr(StateUpdate, "model_fields") else StateUpdate.__fields__)
         proposed = resolution.proposed_updates
         unknown = sorted(set(proposed) - allowed)

@@ -5,9 +5,9 @@ from typing import Any
 from pydantic import BaseModel, ValidationError
 
 try:
-    from .schemas import GMContext, TurnInput, validate_model, validation_errors
+    from .schemas import ActionInterpretation, GMContext, TurnInput, validate_model, validation_errors
 except ImportError:
-    from schemas import GMContext, TurnInput, validate_model, validation_errors
+    from schemas import ActionInterpretation, GMContext, TurnInput, validate_model, validation_errors
 
 
 class Validator:
@@ -27,6 +27,45 @@ class Validator:
         context_errors = self._context_errors(result.context)
         if context_errors:
             return None, warnings, context_errors
+        return result, warnings, errors
+
+    def validate_interpretation(
+        self, player_input: str, context: GMContext, payload: Any
+    ) -> tuple[ActionInterpretation | None, list[str], list[str]]:
+        result, warnings, errors = self.validate(ActionInterpretation, payload, "Action Interpretation")
+        if result is None:
+            return None, warnings, errors
+        conflicts: list[str] = []
+        if result.raw_player_input != player_input:
+            conflicts.append("raw_player_input 與玩家原始輸入不一致。")
+        intent = result.primary_intent.strip().lower()
+        families = (
+            (("殺死", "殺", "砍", "刺", "攻擊", "揍", "射"), {"attack", "hostile", "hostile_action", "violence"}, "攻擊"),
+            (("偷走", "偷", "竊取"), {"steal", "theft", "pickpocket"}, "偷竊"),
+            (("詢問", "問", "打聽"), {"ask", "social", "inquiry", "question"}, "詢問"),
+            (("利用", "製作", "組合", "創意"), {"creative", "creative_action", "improvise", "craft"}, "創意行動"),
+            (("調查", "檢查", "觀察", "尋找"), {"investigation", "investigate", "observe", "search"}, "調查"),
+        )
+        for keywords, allowed, label in families:
+            if any(keyword in player_input for keyword in keywords):
+                if intent not in allowed:
+                    conflicts.append(f"玩家主要動詞屬於{label}，但 primary_intent 為 {result.primary_intent}。")
+                break
+        explicit_targets = []
+        for npc in context.adventure.relevant_npcs:
+            if npc.name in player_input:
+                explicit_targets.append(npc.name)
+            if npc.role:
+                explicit_targets.extend(
+                    alias for alias in (npc.role, npc.role[-2:], npc.role[-3:]) if alias in player_input
+                )
+        if explicit_targets:
+            if not result.target:
+                conflicts.append(f"玩家明確指定目標 {explicit_targets[0]}，但 target 為空。")
+            elif not any(target in result.target or result.target in target for target in explicit_targets):
+                conflicts.append(f"玩家指定目標 {explicit_targets[0]}，但 Interpretation target 變成 {result.target}。")
+        if conflicts:
+            return None, warnings, [f"Interpretation 與玩家輸入衝突：{message}" for message in conflicts]
         return result, warnings, errors
 
     @staticmethod

@@ -131,6 +131,7 @@ class TurnOrchestrator:
     ) -> TurnResult:
         return TurnResult(
             interpretation=interpretation or ActionInterpretation(
+                raw_player_input=player_input,
                 primary_intent="unknown",
                 player_goal=player_input or None,
                 ambiguity="無法完成行動解讀。",

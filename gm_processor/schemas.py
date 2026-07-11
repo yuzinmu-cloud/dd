@@ -103,12 +103,14 @@ class GMContext(StrictModel):
 
 
 class ActionInterpretation(StrictModel):
+    raw_player_input: str = ""
     primary_intent: str
     secondary_intent: str | None = None
     target: str | None = None
     object: str | None = None
     method: str | None = None
     player_goal: str | None = None
+    hostility: bool = False
     ambiguity: str | None = None
     confidence: float = Field(ge=0.0, le=1.0)
 

@@ -42,6 +42,22 @@ def apply_state_update(context: GMContext, state_update: StateUpdate) -> tuple[G
     return updated, []
 
 
+def context_update_diff(before: GMContext, after: GMContext) -> dict[str, Any]:
+    before_data = model_to_dict(before)
+    after_data = model_to_dict(after)
+    before_clues = before_data["adventure"]["known_clues"]
+    after_clues = after_data["adventure"]["known_clues"]
+    return {
+        "added_clues": [clue for clue in after_clues if clue not in before_clues],
+        "location_before": before_data["world"]["current_location"],
+        "location_after": after_data["world"]["current_location"],
+        "hp_before": before_data["character"]["current_hp"],
+        "hp_after": after_data["character"]["current_hp"],
+        "active_events_before": before_data["adventure"]["active_events"],
+        "active_events_after": after_data["adventure"]["active_events"],
+    }
+
+
 def _reject_unknown(changes: dict[str, Any], allowed: set[str], label: str, errors: list[str]) -> None:
     for field in sorted(set(changes) - allowed):
         errors.append(f"{label} 不允許更新欄位：{field}")

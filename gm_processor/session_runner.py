@@ -6,12 +6,12 @@ from typing import Any, Callable
 try:
     from .processor import process_turn
     from .schemas import DiceResult, GMContext, SessionResult, TurnResult, model_to_dict, validate_model
-    from .state_update_applier import apply_state_update
+    from .state_update_applier import apply_state_update, context_update_diff
     from .validator import Validator
 except ImportError:
     from processor import process_turn
     from schemas import DiceResult, GMContext, SessionResult, TurnResult, model_to_dict, validate_model
-    from state_update_applier import apply_state_update
+    from state_update_applier import apply_state_update, context_update_diff
     from validator import Validator
 
 
@@ -100,7 +100,9 @@ def run_session(initial_context: Any, input_provider: InputProvider, output_hand
 
         pending_input = None
         pending_request = None
+        before_update = context
         updated_context, apply_errors = apply_state_update(context, result.state_update)
+        applied_diff = context_update_diff(before_update, updated_context)
         errors.extend(apply_errors)
         context = _update_history_and_session(
             updated_context,
@@ -114,7 +116,13 @@ def run_session(initial_context: Any, input_provider: InputProvider, output_hand
         status = result.session_status
         _emit(
             output_handler,
-            {"type": "context_updated", "context": model_to_dict(context), "apply_errors": apply_errors},
+            {
+                "type": "context_updated",
+                "context": model_to_dict(context),
+                "apply_errors": apply_errors,
+                "applied_diff": applied_diff,
+                "turn_result": model_to_dict(result),
+            },
             warnings,
         )
 
