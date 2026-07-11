@@ -94,8 +94,13 @@ def run_session(initial_context: Any, input_provider: InputProvider, output_hand
             warnings,
         )
         if is_pending:
-            pending_input = player_input
-            pending_request = model_to_dict(result.dice_request)
+            if result.dice_request.needed:
+                pending_input = player_input
+                pending_request = model_to_dict(result.dice_request)
+            else:
+                warnings.append(f"回合等待必要資料：{result.resolution_status}")
+                pending_input = None
+                pending_request = None
             continue
 
         pending_input = None
@@ -150,7 +155,9 @@ def _parse_roll(text: str) -> DiceResult | None:
 
 
 def _is_pending(result: TurnResult, supplied_dice: DiceResult | None) -> bool:
-    return result.dice_request.needed and supplied_dice is None and result.resolution.success is None
+    explicit_pending = bool(result.resolution_status and result.resolution_status.startswith("pending_"))
+    legacy_dice_pending = result.dice_request.needed and supplied_dice is None
+    return (explicit_pending or legacy_dice_pending) and result.resolution.success is None
 
 
 def _update_history_and_session(

@@ -19,6 +19,12 @@ class StrictModel(BaseModel):
 
 
 class RuleContext(StrictModel):
+    rule_system_id: str = "generic"
+    rule_pack_version: str | None = None
+    rule_pack_reference: str | None = None
+    supported_action_categories: list[str] = Field(default_factory=list)
+    active_rule_overrides: dict[str, Any] = Field(default_factory=dict)
+    character_rule_data: dict[str, Any] = Field(default_factory=dict)
     system_name: str
     system_version: str | None
     available_checks: list[str]
@@ -40,6 +46,14 @@ class CharacterContext(StrictModel):
     conditions: list[str]
     current_hp: int | None
     max_hp: int | None
+    ability_scores: dict[str, int] = Field(default_factory=dict)
+    proficiency_bonus: int = 0
+    skill_proficiencies: list[str] = Field(default_factory=list)
+    saving_throw_proficiencies: list[str] = Field(default_factory=list)
+    weapon_proficiencies: list[str] = Field(default_factory=list)
+    equipped_weapon: str | None = None
+    armor_class: int | None = None
+    movement_speed: int | None = None
 
 
 class WorldContext(StrictModel):
@@ -62,6 +76,16 @@ class NPCContext(StrictModel):
     goals: list[str]
     attitude: str | int | None
     current_state: dict[str, object]
+    ability_scores: dict[str, int] = Field(default_factory=dict)
+    proficiency_bonus: int = 0
+    skill_proficiencies: list[str] = Field(default_factory=list)
+    saving_throw_proficiencies: list[str] = Field(default_factory=list)
+    armor_class: int | None = None
+    current_hp: int | None = None
+    max_hp: int | None = None
+    movement_speed: int | None = None
+    equipped_weapon: str | None = None
+    combat_status: str | None = None
 
 
 class AdventureContext(StrictModel):
@@ -111,6 +135,7 @@ class ActionInterpretation(StrictModel):
     method: str | None = None
     player_goal: str | None = None
     hostility: bool = False
+    risk_level: str = "unknown"
     ambiguity: str | None = None
     confidence: float = Field(ge=0.0, le=1.0)
 
@@ -179,6 +204,12 @@ class TurnResult(StrictModel):
     warnings: list[str]
     errors: list[str]
     session_status: SessionStatus = "active"
+    standard_action: dict[str, Any] | None = None
+    feasibility: dict[str, Any] | None = None
+    routed_rule: str | None = None
+    rule_request: dict[str, Any] | None = None
+    rule_result: dict[str, Any] | None = None
+    resolution_status: str | None = None
 
 
 class SessionResult(StrictModel):

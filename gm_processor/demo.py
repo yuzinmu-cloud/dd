@@ -2,7 +2,11 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from pathlib import Path
+
+if __package__ in {None, ""}:
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 try:
     from .schemas import GMContext, validate_model
@@ -46,12 +50,29 @@ def main() -> None:
             print(event["message"])
         elif event_type == "turn_result":
             result = event["result"]
+            print("\nRaw Player Input")
+            print(result["interpretation"].get("raw_player_input"))
             print("\nInterpretation")
             print(json.dumps(result["interpretation"], ensure_ascii=False, indent=2))
+            print("\nStandard Action")
+            print(json.dumps(result.get("standard_action"), ensure_ascii=False, indent=2))
+            print("\nAction Category")
+            print((result.get("standard_action") or {}).get("action_category"))
+            print("\nFeasibility")
+            print(json.dumps(result.get("feasibility"), ensure_ascii=False, indent=2))
+            print("\nRouted Rule")
+            print(result.get("routed_rule"))
+            missing_fields = []
+            missing_fields.extend(item.get("field") for item in (result.get("feasibility") or {}).get("missing_fields", []))
+            missing_fields.extend((result.get("rule_result") or {}).get("missing_fields", []))
+            print("\nMissing Fields")
+            print(json.dumps(list(dict.fromkeys(field for field in missing_fields if field)), ensure_ascii=False, indent=2))
             print("\nRuling")
             print(json.dumps(result["ruling"], ensure_ascii=False, indent=2))
             print("\nDice Request")
             print(json.dumps(result["dice_request"], ensure_ascii=False, indent=2))
+            print("\nRule Result")
+            print(json.dumps(result.get("rule_result"), ensure_ascii=False, indent=2))
             print("\nResolution")
             print(json.dumps(result["resolution"], ensure_ascii=False, indent=2))
             print("\nState Update")

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Any
+from action_resolution.schemas import ActionResolutionResult
 
 try:
     from .ai_provider import AIProvider
@@ -39,6 +40,7 @@ class Narrator:
         resolution: Resolution,
         state_update: StateUpdate,
         context: GMContext,
+        action_resolution: ActionResolutionResult | None = None,
     ) -> tuple[NarrationResult | None, list[str], list[str]]:
         if ruling.requires_roll and resolution.success is None:
             target = interpretation.target or "目標"
@@ -59,6 +61,9 @@ class Narrator:
                 "resolution": model_to_dict(resolution),
                 "state_update": model_to_dict(state_update),
                 "public_context": public_context(model_to_dict(context)),
+                "standard_action": action_resolution.standard_action.model_dump() if action_resolution else None,
+                "feasibility": action_resolution.feasibility.model_dump() if action_resolution else None,
+                "rule_result": action_resolution.rule_result.model_dump() if action_resolution and action_resolution.rule_result else None,
             },
             NarrationResult,
         )

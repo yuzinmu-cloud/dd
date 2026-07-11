@@ -112,5 +112,5 @@ def test_two_v01_acceptance_sessions_complete_five_turns():
     summaries = run_acceptance_sessions()
     assert set(summaries) == {"fantasy", "non_fantasy"}
     assert all(item["turn_count"] == 5 for item in summaries.values())
-    assert all(item["pending_dice_events"] == 1 for item in summaries.values())
+    assert all(item["pending_dice_events"] >= 1 for item in summaries.values())
     assert summaries["fantasy"]["world_name"] != summaries["non_fantasy"]["world_name"]

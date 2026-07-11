@@ -1,6 +1,12 @@
 {
   "context_version": "1.0",
   "rules": {
+    "rule_system_id": "dnd5e_srd52",
+    "rule_pack_version": "0.1.0",
+    "rule_pack_reference": "rule_systems/dnd5e_srd52",
+    "supported_action_categories": ["attack", "ability_check", "skill_check", "saving_throw", "movement", "interaction", "inventory", "use_item", "social", "stealth", "initiative", "improvised_action", "no_roll_action"],
+    "active_rule_overrides": {"default_dc": 10},
+    "character_rule_data": {},
     "system_name": "星際前哨簡化規則",
     "system_version": "1.0",
     "available_checks": ["systems", "science", "presence"],
@@ -21,6 +27,14 @@
     "conditions": ["輕微疲勞"],
     "current_hp": 7,
     "max_hp": 8
+    ,"ability_scores": {"Strength": 10, "Dexterity": 14, "Constitution": 12, "Intelligence": 16, "Wisdom": 13, "Charisma": 9}
+    ,"proficiency_bonus": 2
+    ,"skill_proficiencies": ["Investigation"]
+    ,"saving_throw_proficiencies": ["Intelligence"]
+    ,"weapon_proficiencies": []
+    ,"equipped_weapon": null
+    ,"armor_class": 12
+    ,"movement_speed": 30
   },
   "world": {
     "world_name": "赫利俄斯航域",
@@ -47,6 +61,16 @@
         "goals": ["恢復感測陣列", "確認能量峰值來源"],
         "attitude": 0,
         "current_state": {"location": "主控室", "status": "active"}
+        ,"ability_scores": {"Strength": 9, "Dexterity": 11, "Constitution": 10, "Intelligence": 15, "Wisdom": 14, "Charisma": 10}
+        ,"proficiency_bonus": 2
+        ,"skill_proficiencies": ["Investigation"]
+        ,"saving_throw_proficiencies": ["Intelligence"]
+        ,"armor_class": 11
+        ,"current_hp": 7
+        ,"max_hp": 7
+        ,"movement_speed": 30
+        ,"equipped_weapon": null
+        ,"combat_status": "ready"
       }
     ],
     "known_clues": ["陣列離線前記錄到能量峰值。"],

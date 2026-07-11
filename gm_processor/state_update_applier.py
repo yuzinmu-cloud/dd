@@ -12,7 +12,7 @@ except ImportError:
 
 
 CHARACTER_FIELDS = {"current_hp", "conditions", "inventory", "equipment", "attributes", "skills"}
-NPC_FIELDS = {"attitude", "current_state", "known_facts", "goals"}
+NPC_FIELDS = {"attitude", "current_state", "known_facts", "goals", "current_hp", "combat_status"}
 WORLD_FIELDS = {"time", "weather", "known_world_facts", "active_world_states"}
 SESSION_FIELDS = {"current_phase", "initiative"}
 
@@ -92,6 +92,11 @@ def _apply_npcs(npcs: list[dict[str, Any]], changes: dict[str, Any], errors: lis
                 _apply_list_delta(npc[field], value, f"NPC {npc_id} {field}", errors)
             else:
                 npc[field] = deepcopy(value)
+        if "current_hp" in npc_changes:
+            hp = npc_changes["current_hp"]
+            maximum = npc.get("max_hp")
+            if not isinstance(hp, int) or isinstance(hp, bool) or hp < 0 or (maximum is not None and hp > maximum):
+                errors.append(f"NPC {npc_id} current_hp 必須介於 0 與 max_hp 之間。")
 
 
 def _apply_world(world: dict[str, Any], changes: dict[str, Any], location_changes: dict[str, Any], errors: list[str]) -> None:

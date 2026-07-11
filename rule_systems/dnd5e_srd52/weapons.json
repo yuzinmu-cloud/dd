@@ -1,0 +1,1 @@
+{"unarmed":{"name":"Unarmed Strike","attack_ability":"Strength","damage":{"dice_count":0,"dice_sides":1,"modifier":"Strength","damage_type":"bludgeoning"}},"shortsword":{"name":"Shortsword","attack_ability":"Strength_or_Dexterity","damage":{"dice_count":1,"dice_sides":6,"modifier":"attack_ability","damage_type":"piercing"}}}

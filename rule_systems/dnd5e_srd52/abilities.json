@@ -1,0 +1,1 @@
+{"Strength":"str","Dexterity":"dex","Constitution":"con","Intelligence":"int","Wisdom":"wis","Charisma":"cha","modifier_formula":"floor((score-10)/2)"}

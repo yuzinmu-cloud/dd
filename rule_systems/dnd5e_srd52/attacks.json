@@ -1,0 +1,1 @@
+{"formula":["d20","ability_modifier","proficiency_if_proficient","situational_modifier"],"requires":["ability_score","target_ac"],"natural_20":"critical_hit","natural_1":"critical_miss"}

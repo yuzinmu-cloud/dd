@@ -61,19 +61,17 @@ class TurnOrchestrator:
             if interpretation is None:
                 return self._safe_result(warnings, errors, player_input=turn_input.player_input)
 
-            ruling, dice_request, new_warnings, new_errors = self.judge.judge(interpretation, context)
+            ruling, dice_request, action_resolution, new_warnings, new_errors = self.judge.judge(
+                interpretation, context, turn_input.dice_result
+            )
             warnings.extend(new_warnings)
             errors.extend(new_errors)
             if ruling is None or dice_request is None:
                 return self._safe_result(warnings, errors, interpretation, player_input=turn_input.player_input)
 
-            dice_result, new_warnings, new_errors = self.dice_interface.get_result(dice_request, turn_input.dice_result)
-            warnings.extend(new_warnings)
-            errors.extend(new_errors)
-            if new_errors:
-                return self._safe_result(warnings, errors, interpretation, ruling, dice_request, player_input=turn_input.player_input)
-
-            resolution, new_warnings, new_errors = self.resolver.resolve(interpretation, ruling, dice_result, context)
+            resolution, new_warnings, new_errors = self.resolver.resolve(
+                interpretation, ruling, action_resolution, context
+            )
             warnings.extend(new_warnings)
             errors.extend(new_errors)
             if resolution is None:
@@ -95,7 +93,7 @@ class TurnOrchestrator:
                 return self._safe_result(warnings, errors, interpretation, ruling, dice_request, resolution, player_input=turn_input.player_input)
 
             narration, new_warnings, new_errors = self.narrator.narrate(
-                interpretation, ruling, resolution, state_update, context
+                interpretation, ruling, resolution, state_update, context, action_resolution
             )
             warnings.extend(new_warnings)
             errors.extend(new_errors)
@@ -113,6 +111,12 @@ class TurnOrchestrator:
                 narration=narration.narration,
                 warnings=warnings,
                 errors=errors,
+                standard_action=action_resolution.standard_action.model_dump(),
+                feasibility=action_resolution.feasibility.model_dump(),
+                routed_rule=action_resolution.routed_rule,
+                rule_request=action_resolution.rule_request.model_dump() if action_resolution.rule_request else None,
+                rule_result=action_resolution.rule_result.model_dump() if action_resolution.rule_result else None,
+                resolution_status=action_resolution.status,
             )
         except Exception as error:  # Component failures must become a legal TurnResult.
             errors.append(f"GM Processor 發生未預期錯誤：{error}")

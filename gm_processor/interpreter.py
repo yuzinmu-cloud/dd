@@ -43,8 +43,10 @@ class Interpreter:
         hostile_input = any(word in player_input for word in ("殺", "砍", "刺", "攻擊", "揍", "射"))
         if hostile_input:
             payload["hostility"] = True
+            payload["risk_level"] = "high"
         else:
             payload.setdefault("hostility", False)
+            payload.setdefault("risk_level", "unknown")
         if not payload.get("target"):
             payload["target"] = _explicit_target(player_input, context)
         result, warnings, errors = self.validator.validate_interpretation(player_input, context, payload)

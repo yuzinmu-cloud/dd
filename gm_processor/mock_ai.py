@@ -32,6 +32,7 @@ class MockAIProvider:
                 "method": "依玩家描述行動",
                 "player_goal": player_input,
                 "hostility": intent in {"attack", "hostile_action"},
+                "risk_level": "impossible" if any(word in player_input for word in ("徒手飛", "瞬間移動", "不可能")) else "high" if any(word in player_input for word in ("嘗試", "危險", "說服", "破解", "跳", "攻擊", "殺", "砍", "刺", "揍", "射", "偷")) else "low",
                 "ambiguity": "資訊不足" if any(word in player_input for word in ("不知道", "隨便", "資訊不足")) else None,
                 "confidence": 0.85,
             }), None
@@ -98,6 +99,9 @@ def _intent(text: str) -> str:
         (("調查", "檢查", "尋找", "觀察", "診斷"), "investigate"),
         (("說服", "交涉", "詢問"), "social"),
         (("前往", "移動", "離開"), "move"),
+        (("跳",), "move"),
+        (("飛",), "move"),
+        (("破解",), "investigate"),
         (("攻擊", "射擊"), "attack"),
     )
     for words, intent in mapping:

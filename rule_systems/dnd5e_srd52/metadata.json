@@ -1,0 +1,11 @@
+{
+  "rule_system_id": "dnd5e_srd52",
+  "name": "D&D SRD 5.2 Minimal Rule Pack",
+  "version": "0.1.0",
+  "source_name": "System Reference Document 5.2",
+  "source_version": "5.2.1",
+  "license": "CC BY 4.0",
+  "attribution": "This work includes material from the System Reference Document 5.2 (SRD 5.2) by Wizards of the Coast LLC, available at https://www.dndbeyond.com/srd. The SRD 5.2 is licensed under the Creative Commons Attribution 4.0 International License, available at https://creativecommons.org/licenses/by/4.0/legalcode.",
+  "supported_action_categories": ["attack", "ability_check", "skill_check", "saving_throw", "movement", "interaction", "inventory", "use_item", "social", "stealth", "rest", "initiative", "improvised_action", "no_roll_action"],
+  "unsupported_features": ["complete_spellcasting", "resistance_immunity_vulnerability", "death_saves", "complete_conditions", "complete_combat_rounds"]
+}

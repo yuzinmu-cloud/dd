@@ -1,6 +1,12 @@
 {
   "context_version": "1.0",
   "rules": {
+    "rule_system_id": "dnd5e_srd52",
+    "rule_pack_version": "0.1.0",
+    "rule_pack_reference": "rule_systems/dnd5e_srd52",
+    "supported_action_categories": ["attack", "ability_check", "skill_check", "saving_throw", "movement", "interaction", "inventory", "use_item", "social", "stealth", "initiative", "improvised_action", "no_roll_action"],
+    "active_rule_overrides": {"default_dc": 10},
+    "character_rule_data": {},
     "system_name": "AIGMOS 簡化調查規則",
     "system_version": "1.0",
     "available_checks": ["body", "mind", "social"],
@@ -21,6 +27,14 @@
     "conditions": [],
     "current_hp": 10,
     "max_hp": 10
+    ,"ability_scores": {"Strength": 12, "Dexterity": 14, "Constitution": 12, "Intelligence": 15, "Wisdom": 13, "Charisma": 11}
+    ,"proficiency_bonus": 2
+    ,"skill_proficiencies": ["Investigation", "Perception"]
+    ,"saving_throw_proficiencies": ["Intelligence"]
+    ,"weapon_proficiencies": ["shortsword"]
+    ,"equipped_weapon": "shortsword"
+    ,"armor_class": 13
+    ,"movement_speed": 30
   },
   "world": {
     "world_name": "霧河諸境",
@@ -47,6 +61,16 @@
         "goals": ["找回貨箱", "避免驛站名聲受損"],
         "attitude": "緊張但願意合作",
         "current_state": {"location": "驛站櫃台", "mood": "焦慮"}
+        ,"ability_scores": {"Strength": 10, "Dexterity": 10, "Constitution": 10, "Intelligence": 10, "Wisdom": 11, "Charisma": 10}
+        ,"proficiency_bonus": 2
+        ,"skill_proficiencies": []
+        ,"saving_throw_proficiencies": []
+        ,"armor_class": 10
+        ,"current_hp": 8
+        ,"max_hp": 8
+        ,"movement_speed": 30
+        ,"equipped_weapon": null
+        ,"combat_status": "ready"
       }
     ],
     "known_clues": ["後門旁有濕泥腳印。"],
